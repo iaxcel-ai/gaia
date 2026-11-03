@@ -6,6 +6,8 @@ const { issueToken } = require('../src/services/authService');
 let facA;
 let facB;
 let token;
+let ownToken;
+let otherFacilityToken;
 
 beforeAll(async () => {
   const district = await query(`INSERT INTO districts (name) VALUES ('TestDistrict') RETURNING id`);
@@ -31,6 +33,8 @@ beforeAll(async () => {
   );
 
   token = issueToken({ id: 1, username: 'facilities-tester', role: 'nurse', facility_id: facA });
+  ownToken = issueToken({ id: 2, username: 'own-facility-nurse', role: 'nurse', facility_id: facA });
+  otherFacilityToken = issueToken({ id: 3, username: 'other-facility-nurse', role: 'nurse', facility_id: facB });
 });
 
 afterAll(() => closePool());
@@ -65,4 +69,33 @@ test('GET /facilities/:id/status for a facility with no reported status returns 
 test('GET /facilities/:id/status for a nonexistent facility returns 404', async () => {
   const res = await request(app).get('/facilities/999999/status').set('Authorization', `Bearer ${token}`);
   expect(res.status).toBe(404);
+});
+
+test('PUT /facilities/:id/status by the facility\'s own staff inserts a new status row', async () => {
+  const res = await request(app).put(`/facilities/${facA}/status`)
+    .set('Authorization', `Bearer ${ownToken}`)
+    .send({ type: 'supply', quantity: 10 });
+  expect(res.status).toBe(201);
+  expect(res.body).toMatchObject({ type: 'supply', quantity: 10, stale: false });
+});
+
+test('PUT /facilities/:id/status by staff from a different facility is rejected with 403', async () => {
+  const res = await request(app).put(`/facilities/${facA}/status`)
+    .set('Authorization', `Bearer ${otherFacilityToken}`)
+    .send({ type: 'supply', quantity: 10 });
+  expect(res.status).toBe(403);
+});
+
+test('PUT /facilities/:id/status with a negative quantity is rejected with 400', async () => {
+  const res = await request(app).put(`/facilities/${facA}/status`)
+    .set('Authorization', `Bearer ${ownToken}`)
+    .send({ type: 'bed', quantity: -1 });
+  expect(res.status).toBe(400);
+});
+
+test('PUT /facilities/:id/status with an invalid type is rejected with 400', async () => {
+  const res = await request(app).put(`/facilities/${facA}/status`)
+    .set('Authorization', `Bearer ${ownToken}`)
+    .send({ type: 'ambulance', quantity: 1 });
+  expect(res.status).toBe(400);
 });
