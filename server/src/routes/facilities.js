@@ -4,6 +4,12 @@ const requireAuth = require('../middleware/requireAuth');
 const asyncHandler = require('../middleware/asyncHandler');
 
 const STALE_THRESHOLD_MS = 2 * 60 * 60 * 1000;
+const VALID_TYPES = ['bed', 'specialist', 'supply'];
+const MAX_PG_INTEGER = 2147483647;
+
+function isValidFacilityId(id) {
+  return Number.isInteger(id) && id > 0 && id <= MAX_PG_INTEGER;
+}
 
 const router = express.Router();
 
@@ -14,6 +20,10 @@ router.get('/', requireAuth, asyncHandler(async (req, res) => {
 
 router.get('/:id/status', requireAuth, asyncHandler(async (req, res) => {
   const facilityId = Number(req.params.id);
+  if (!isValidFacilityId(facilityId)) {
+    return res.status(404).json({ error: 'Facility not found' });
+  }
+
   const facility = await query('SELECT id FROM facilities WHERE id = $1', [facilityId]);
   if (facility.rows.length === 0) {
     return res.status(404).json({ error: 'Facility not found' });
@@ -36,8 +46,6 @@ router.get('/:id/status', requireAuth, asyncHandler(async (req, res) => {
 
   res.status(200).json({ facility_id: facilityId, status });
 }));
-
-const VALID_TYPES = ['bed', 'specialist', 'supply'];
 
 router.put('/:id/status', requireAuth, asyncHandler(async (req, res) => {
   const { type, quantity } = req.body;

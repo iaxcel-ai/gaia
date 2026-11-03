@@ -71,6 +71,16 @@ test('GET /facilities/:id/status for a nonexistent facility returns 404', async 
   expect(res.status).toBe(404);
 });
 
+test('GET /facilities/:id/status for a non-numeric id returns 404, not a crash', async () => {
+  const res = await request(app).get('/facilities/abc/status').set('Authorization', `Bearer ${token}`);
+  expect(res.status).toBe(404);
+});
+
+test('GET /facilities/:id/status for an id too large for the database returns 404, not a crash', async () => {
+  const res = await request(app).get('/facilities/99999999999/status').set('Authorization', `Bearer ${token}`);
+  expect(res.status).toBe(404);
+});
+
 test('PUT /facilities/:id/status by the facility\'s own staff inserts a new status row', async () => {
   const res = await request(app).put(`/facilities/${facA}/status`)
     .set('Authorization', `Bearer ${ownToken}`)
