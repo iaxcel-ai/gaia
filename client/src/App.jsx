@@ -1,10 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
-
-function Dashboard() {
-  return <p>Dashboard coming in Phase 2</p>;
-}
+import Dashboard from './pages/Dashboard';
 
 function RequireUser({ children }) {
   const { user } = useAuth();
