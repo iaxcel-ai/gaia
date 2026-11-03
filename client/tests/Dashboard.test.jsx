@@ -58,3 +58,38 @@ test('the update form is not shown when viewing another facility', async () => {
   await userEvent.selectOptions(await screen.findByLabelText(/facility/i), 'Other Facility');
   expect(screen.queryByLabelText(/quantity/i)).not.toBeInTheDocument();
 });
+
+test('submitting with an empty quantity does not call updateFacilityStatus', async () => {
+  getFacilities.mockResolvedValue([{ id: 1, name: 'Own Facility' }]);
+  getFacilityStatus.mockResolvedValue({ facility_id: 1, status: [{ type: 'bed', quantity: 5, stale: false }] });
+  renderWithAuth({ facility_id: 1 });
+  await screen.findByText('5');
+  await userEvent.click(screen.getByRole('button', { name: /update/i }));
+  expect(updateFacilityStatus).not.toHaveBeenCalled();
+});
+
+test('shows an error message when updating status fails', async () => {
+  getFacilities.mockResolvedValue([{ id: 1, name: 'Own Facility' }]);
+  getFacilityStatus.mockResolvedValue({ facility_id: 1, status: [{ type: 'bed', quantity: 5, stale: false }] });
+  updateFacilityStatus.mockRejectedValue(new Error('Invalid type or quantity'));
+  renderWithAuth({ facility_id: 1 });
+  await screen.findByText('5');
+  await userEvent.type(screen.getByLabelText(/quantity/i), '3');
+  await userEvent.click(screen.getByRole('button', { name: /update/i }));
+  expect(await screen.findByText('Invalid type or quantity')).toBeInTheDocument();
+});
+
+test('a user with no facility sees a prompt instead of a broken dashboard', async () => {
+  getFacilities.mockResolvedValue([{ id: 1, name: 'Facility One' }]);
+  renderWithAuth({ facility_id: null });
+  expect(await screen.findByText(/select a facility/i)).toBeInTheDocument();
+  expect(getFacilityStatus).not.toHaveBeenCalled();
+});
+
+test('a resource type that was never reported shows as no data', async () => {
+  getFacilities.mockResolvedValue([{ id: 1, name: 'Own Facility' }]);
+  getFacilityStatus.mockResolvedValue({ facility_id: 1, status: [{ type: 'bed', quantity: 5, stale: false }] });
+  renderWithAuth({ facility_id: 1 });
+  await screen.findByText('5');
+  expect(screen.getByText('specialist: no data')).toBeInTheDocument();
+});

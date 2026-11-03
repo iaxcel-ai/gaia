@@ -12,20 +12,34 @@ export default function Dashboard() {
   const [status, setStatus] = useState([]);
   const [updateType, setUpdateType] = useState(RESOURCE_TYPES[0]);
   const [quantity, setQuantity] = useState('');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    getFacilities().then(setFacilities);
+    getFacilities().then(setFacilities).catch((e) => setError(e.message));
   }, []);
 
   useEffect(() => {
-    getFacilityStatus(selectedFacilityId).then((result) => setStatus(result.status));
+    if (selectedFacilityId == null) return;
+    getFacilityStatus(selectedFacilityId)
+      .then((result) => setStatus(result.status))
+      .catch((e) => setError(e.message));
   }, [selectedFacilityId]);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    await updateFacilityStatus(selectedFacilityId, updateType, Number(quantity));
-    const result = await getFacilityStatus(selectedFacilityId);
-    setStatus(result.status);
+    if (quantity === '') return;
+    setError(null);
+    try {
+      await updateFacilityStatus(selectedFacilityId, updateType, Number(quantity));
+      const result = await getFacilityStatus(selectedFacilityId);
+      setStatus(result.status);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  if (selectedFacilityId == null) {
+    return <p>Select a facility to get started.</p>;
   }
 
   return (
@@ -41,9 +55,14 @@ export default function Dashboard() {
         ))}
       </select>
 
-      {status.map((s) => (
-        <ResourceCard key={s.type} type={s.type} quantity={s.quantity} stale={s.stale} />
-      ))}
+      {error && <p role="alert">{error}</p>}
+
+      {RESOURCE_TYPES.map((t) => {
+        const entry = status.find((s) => s.type === t);
+        return entry
+          ? <ResourceCard key={t} type={entry.type} quantity={entry.quantity} stale={entry.stale} />
+          : <p key={t}>{t}: no data</p>;
+      })}
 
       {selectedFacilityId === user.facility_id && (
         <form onSubmit={handleSubmit}>
