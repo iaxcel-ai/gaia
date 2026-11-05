@@ -45,6 +45,7 @@ export default function Dashboard() {
 
   return (
     <div>
+      <Link to="/referrals">Referrals</Link>
       <label htmlFor="facility-select">Facility</label>
       <select
         id="facility-select"
