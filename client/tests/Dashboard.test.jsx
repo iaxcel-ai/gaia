@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { vi, test, expect, beforeEach } from 'vitest';
 import { AuthContext } from '../src/context/AuthContext';
 import Dashboard from '../src/pages/Dashboard';
@@ -9,9 +10,11 @@ vi.mock('../src/api/facilities');
 
 function renderWithAuth(user) {
   return render(
-    <AuthContext.Provider value={{ user }}>
-      <Dashboard />
-    </AuthContext.Provider>
+    <MemoryRouter>
+      <AuthContext.Provider value={{ user }}>
+        <Dashboard />
+      </AuthContext.Provider>
+    </MemoryRouter>
   );
 }
 
