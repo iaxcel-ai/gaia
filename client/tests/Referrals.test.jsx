@@ -61,6 +61,73 @@ test('a referring-facility user sees no accept/decline buttons', async () => {
   expect(screen.queryByRole('button', { name: /accept/i })).not.toBeInTheDocument();
 });
 
+test('a receiving-facility user sees a complete button on an accepted referral', async () => {
+  getReferrals.mockResolvedValue([
+    { id: 1, patient_ref: 'P-1', status: 'accepted', referring_facility_id: 1, receiving_facility_id: 2 },
+  ]);
+  renderWithAuth({ facility_id: 2 });
+  await screen.findByText('P-1');
+  expect(screen.getByRole('button', { name: /complete/i })).toBeInTheDocument();
+});
+
+test('clicking complete calls respondToReferral with complete', async () => {
+  getReferrals.mockResolvedValue([
+    { id: 1, patient_ref: 'P-1', status: 'accepted', referring_facility_id: 1, receiving_facility_id: 2 },
+  ]);
+  respondToReferral.mockResolvedValue({ id: 1, status: 'completed' });
+  renderWithAuth({ facility_id: 2 });
+  await screen.findByText('P-1');
+  await userEvent.click(screen.getByRole('button', { name: /complete/i }));
+  expect(respondToReferral).toHaveBeenCalledWith(1, 'complete');
+});
+
+test('a referring-facility user sees a cancel button on a pending referral', async () => {
+  getReferrals.mockResolvedValue([
+    { id: 1, patient_ref: 'P-1', status: 'pending', referring_facility_id: 1, receiving_facility_id: 2 },
+  ]);
+  renderWithAuth({ facility_id: 1 });
+  await screen.findByText('P-1');
+  expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
+});
+
+test('clicking cancel calls respondToReferral with cancel', async () => {
+  getReferrals.mockResolvedValue([
+    { id: 1, patient_ref: 'P-1', status: 'pending', referring_facility_id: 1, receiving_facility_id: 2 },
+  ]);
+  respondToReferral.mockResolvedValue({ id: 1, status: 'cancelled' });
+  renderWithAuth({ facility_id: 1 });
+  await screen.findByText('P-1');
+  await userEvent.click(screen.getByRole('button', { name: /cancel/i }));
+  expect(respondToReferral).toHaveBeenCalledWith(1, 'cancel');
+});
+
+test('a receiving-facility user sees no cancel button and a referring-facility user sees no complete button', async () => {
+  getReferrals.mockResolvedValue([
+    { id: 1, patient_ref: 'P-1', status: 'accepted', referring_facility_id: 1, receiving_facility_id: 2 },
+  ]);
+  renderWithAuth({ facility_id: 1 });
+  await screen.findByText('P-1');
+  expect(screen.queryByRole('button', { name: /complete/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /cancel/i })).not.toBeInTheDocument();
+});
+
+test('shows an error message when the referral list fails to load', async () => {
+  getReferrals.mockRejectedValue(new Error('Request failed'));
+  renderWithAuth({ facility_id: 1 });
+  expect(await screen.findByText('Request failed')).toBeInTheDocument();
+});
+
+test('shows an error message when accepting a referral fails', async () => {
+  getReferrals.mockResolvedValue([
+    { id: 1, patient_ref: 'P-1', status: 'pending', referring_facility_id: 1, receiving_facility_id: 2 },
+  ]);
+  respondToReferral.mockRejectedValue(new Error('Referral is not pending'));
+  renderWithAuth({ facility_id: 2 });
+  await screen.findByText('P-1');
+  await userEvent.click(screen.getByRole('button', { name: /accept/i }));
+  expect(await screen.findByText('Referral is not pending')).toBeInTheDocument();
+});
+
 test('a new socket referral event triggers a list refresh', async () => {
   getReferrals.mockResolvedValueOnce([]).mockResolvedValueOnce([
     { id: 2, patient_ref: 'P-2', status: 'pending', referring_facility_id: 1, receiving_facility_id: 2 },
