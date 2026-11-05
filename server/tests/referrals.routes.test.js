@@ -94,3 +94,65 @@ test('GET /referrals/:id for a nonexistent referral returns 404', async () => {
   const res = await request(app).get('/referrals/999999').set('Authorization', `Bearer ${tokenA}`);
   expect(res.status).toBe(404);
 });
+
+test('PATCH /referrals/:id accept by the receiving facility succeeds', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-4', condition: 'x', resource_required: 'bed' });
+  const res = await request(app).patch(`/referrals/${created.body.id}`)
+    .set('Authorization', `Bearer ${tokenB}`).send({ action: 'accept' });
+  expect(res.status).toBe(200);
+  expect(res.body.status).toBe('accepted');
+});
+
+test('PATCH /referrals/:id accept by the referring facility is rejected with 403', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-5', condition: 'x', resource_required: 'bed' });
+  const res = await request(app).patch(`/referrals/${created.body.id}`)
+    .set('Authorization', `Bearer ${tokenA}`).send({ action: 'accept' });
+  expect(res.status).toBe(403);
+});
+
+test('PATCH /referrals/:id accepting an already-accepted referral is rejected with 409', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-6', condition: 'x', resource_required: 'bed' });
+  await request(app).patch(`/referrals/${created.body.id}`).set('Authorization', `Bearer ${tokenB}`).send({ action: 'accept' });
+  const res = await request(app).patch(`/referrals/${created.body.id}`)
+    .set('Authorization', `Bearer ${tokenB}`).send({ action: 'accept' });
+  expect(res.status).toBe(409);
+});
+
+test('PATCH /referrals/:id complete by the referring facility is rejected with 403', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-7', condition: 'x', resource_required: 'bed' });
+  await request(app).patch(`/referrals/${created.body.id}`).set('Authorization', `Bearer ${tokenB}`).send({ action: 'accept' });
+  const res = await request(app).patch(`/referrals/${created.body.id}`)
+    .set('Authorization', `Bearer ${tokenA}`).send({ action: 'complete' });
+  expect(res.status).toBe(403);
+});
+
+test('PATCH /referrals/:id complete by the receiving facility after accept succeeds', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-8', condition: 'x', resource_required: 'bed' });
+  await request(app).patch(`/referrals/${created.body.id}`).set('Authorization', `Bearer ${tokenB}`).send({ action: 'accept' });
+  const res = await request(app).patch(`/referrals/${created.body.id}`)
+    .set('Authorization', `Bearer ${tokenB}`).send({ action: 'complete' });
+  expect(res.status).toBe(200);
+  expect(res.body.status).toBe('completed');
+});
+
+test('PATCH /referrals/:id cancel by the referring facility before acceptance succeeds', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-9', condition: 'x', resource_required: 'bed' });
+  const res = await request(app).patch(`/referrals/${created.body.id}`)
+    .set('Authorization', `Bearer ${tokenA}`).send({ action: 'cancel' });
+  expect(res.status).toBe(200);
+  expect(res.body.status).toBe('cancelled');
+});
+
+test('PATCH /referrals/:id with an invalid action is rejected with 400', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-10', condition: 'x', resource_required: 'bed' });
+  const res = await request(app).patch(`/referrals/${created.body.id}`)
+    .set('Authorization', `Bearer ${tokenA}`).send({ action: 'teleport' });
+  expect(res.status).toBe(400);
+});

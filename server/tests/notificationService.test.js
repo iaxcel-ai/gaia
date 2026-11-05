@@ -36,7 +36,7 @@ test('notify emits in-app and logs an in_app notification when the room has a me
   const referral = referralResult.rows[0];
 
   const io = fakeIo(true);
-  await notify(io, referral);
+  await notify(io, facilityId, referral);
 
   expect(io.to).toHaveBeenCalledWith(`facility:${facilityId}`);
   expect(io._emit).toHaveBeenCalledWith('referral', referral);
@@ -57,7 +57,7 @@ test('notify falls back to sendSms and logs an sms notification when the room is
   const referral = referralResult.rows[0];
 
   const io = fakeIo(false);
-  await notify(io, referral);
+  await notify(io, facilityId, referral);
 
   expect(io.to).not.toHaveBeenCalled();
   const result = await query('SELECT * FROM notifications WHERE referral_id = $1 AND channel = $2', [referral.id, 'sms']);
