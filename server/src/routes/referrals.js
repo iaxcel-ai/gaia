@@ -8,12 +8,16 @@ const { notify } = require('../services/notificationService');
 const router = express.Router();
 
 router.post('/', requireAuth, asyncHandler(async (req, res) => {
-  const { receiving_facility_id, patient_ref, condition, resource_required } = req.body;
+  const { patient_ref, condition, resource_required } = req.body;
+  const receivingFacilityId = Number(req.body.receiving_facility_id);
 
   if (!req.user.facility_id) {
     return res.status(400).json({ error: 'You must belong to a facility to create a referral' });
   }
-  if (receiving_facility_id === req.user.facility_id) {
+  if (!Number.isInteger(receivingFacilityId)) {
+    return res.status(400).json({ error: 'A valid receiving_facility_id is required' });
+  }
+  if (receivingFacilityId === req.user.facility_id) {
     return res.status(400).json({ error: 'Cannot refer to your own facility' });
   }
   if (typeof patient_ref !== 'string' || !patient_ref
@@ -22,7 +26,7 @@ router.post('/', requireAuth, asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'patient_ref, condition, and resource_required are required' });
   }
 
-  const facility = await query('SELECT id FROM facilities WHERE id = $1', [receiving_facility_id]);
+  const facility = await query('SELECT id FROM facilities WHERE id = $1', [receivingFacilityId]);
   if (facility.rows.length === 0) {
     return res.status(400).json({ error: 'Receiving facility not found' });
   }
@@ -31,7 +35,7 @@ router.post('/', requireAuth, asyncHandler(async (req, res) => {
     `INSERT INTO referrals (patient_ref, condition, resource_required, referring_facility_id, receiving_facility_id, created_by)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [patient_ref, condition, resource_required, req.user.facility_id, receiving_facility_id, req.user.id]
+    [patient_ref, condition, resource_required, req.user.facility_id, receivingFacilityId, req.user.id]
   );
   const referral = result.rows[0];
 
@@ -56,7 +60,12 @@ router.get('/', requireAuth, asyncHandler(async (req, res) => {
 }));
 
 router.get('/:id', requireAuth, asyncHandler(async (req, res) => {
-  const result = await query('SELECT * FROM referrals WHERE id = $1', [req.params.id]);
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(404).json({ error: 'Referral not found' });
+  }
+
+  const result = await query('SELECT * FROM referrals WHERE id = $1', [id]);
   if (result.rows.length === 0) {
     return res.status(404).json({ error: 'Referral not found' });
   }
@@ -88,7 +97,12 @@ router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'Invalid action' });
   }
 
-  const result = await query('SELECT * FROM referrals WHERE id = $1', [req.params.id]);
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(404).json({ error: 'Referral not found' });
+  }
+
+  const result = await query('SELECT * FROM referrals WHERE id = $1', [id]);
   if (result.rows.length === 0) {
     return res.status(404).json({ error: 'Referral not found' });
   }
@@ -100,14 +114,14 @@ router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
   if (req.user.facility_id !== requiredFacilityId) {
     return res.status(403).json({ error: 'Forbidden' });
   }
-  if (referral.status !== rule.requiredStatus) {
-    return res.status(409).json({ error: `Referral is not ${rule.requiredStatus}` });
-  }
 
   const updateResult = await query(
-    'UPDATE referrals SET status = $1 WHERE id = $2 RETURNING *',
-    [rule.newStatus, referral.id]
+    'UPDATE referrals SET status = $1 WHERE id = $2 AND status = $3 RETURNING *',
+    [rule.newStatus, referral.id, rule.requiredStatus]
   );
+  if (updateResult.rows.length === 0) {
+    return res.status(409).json({ error: `Referral is not ${rule.requiredStatus}` });
+  }
   const updated = updateResult.rows[0];
 
   await writeAudit(req.user.id, rule.auditAction);

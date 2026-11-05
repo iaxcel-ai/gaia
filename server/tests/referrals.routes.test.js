@@ -70,6 +70,31 @@ test('POST /referrals to a nonexistent facility is rejected with 400', async () 
   expect(res.status).toBe(400);
 });
 
+test('POST /referrals to your own facility as a string id is still rejected with 400', async () => {
+  const res = await request(app).post('/referrals')
+    .set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: String(facA), patient_ref: 'P-1', condition: 'fracture', resource_required: 'bed' });
+  expect(res.status).toBe(400);
+});
+
+test('POST /referrals with a non-numeric receiving_facility_id is rejected with 400, not a crash', async () => {
+  const res = await request(app).post('/referrals')
+    .set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: 'abc', patient_ref: 'P-1', condition: 'fracture', resource_required: 'bed' });
+  expect(res.status).toBe(400);
+});
+
+test('POST /referrals audits the creation', async () => {
+  const res = await request(app).post('/referrals')
+    .set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-AUDIT', condition: 'x', resource_required: 'bed' });
+  const audit = await query(
+    'SELECT * FROM audit_log WHERE user_id = $1 AND action = $2',
+    [res.body.created_by, 'referral_created']
+  );
+  expect(audit.rows.length).toBeGreaterThan(0);
+});
+
 test('GET /referrals lists referrals where the user\'s facility is referring or receiving', async () => {
   const res = await request(app).get('/referrals').set('Authorization', `Bearer ${tokenA}`);
   expect(res.status).toBe(200);
@@ -92,6 +117,11 @@ test('GET /referrals/:id is forbidden to an unrelated facility', async () => {
 
 test('GET /referrals/:id for a nonexistent referral returns 404', async () => {
   const res = await request(app).get('/referrals/999999').set('Authorization', `Bearer ${tokenA}`);
+  expect(res.status).toBe(404);
+});
+
+test('GET /referrals/:id for a non-numeric id returns 404, not a crash', async () => {
+  const res = await request(app).get('/referrals/abc').set('Authorization', `Bearer ${tokenA}`);
   expect(res.status).toBe(404);
 });
 
@@ -155,4 +185,42 @@ test('PATCH /referrals/:id with an invalid action is rejected with 400', async (
   const res = await request(app).patch(`/referrals/${created.body.id}`)
     .set('Authorization', `Bearer ${tokenA}`).send({ action: 'teleport' });
   expect(res.status).toBe(400);
+});
+
+test('PATCH /referrals/:id for a non-numeric id returns 404, not a crash', async () => {
+  const res = await request(app).patch('/referrals/abc')
+    .set('Authorization', `Bearer ${tokenA}`).send({ action: 'accept' });
+  expect(res.status).toBe(404);
+});
+
+test('two simultaneous accepts on the same referral only let one succeed', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-RACE', condition: 'x', resource_required: 'bed' });
+
+  const [first, second] = await Promise.all([
+    request(app).patch(`/referrals/${created.body.id}`).set('Authorization', `Bearer ${tokenB}`).send({ action: 'accept' }),
+    request(app).patch(`/referrals/${created.body.id}`).set('Authorization', `Bearer ${tokenB}`).send({ action: 'accept' }),
+  ]);
+
+  const statuses = [first.status, second.status].sort();
+  expect(statuses).toEqual([200, 409]);
+});
+
+test('PATCH /referrals/:id notifies the other facility, not the one that acted', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-NOTIFY', condition: 'x', resource_required: 'bed' });
+
+  const emit = jest.fn();
+  const targetedIo = {
+    sockets: { adapter: { rooms: new Map([[`facility:${facA}`, new Set(['x'])]]) } },
+    to: jest.fn(() => ({ emit })),
+  };
+  app.set('io', targetedIo);
+
+  await request(app).patch(`/referrals/${created.body.id}`).set('Authorization', `Bearer ${tokenB}`).send({ action: 'accept' });
+
+  expect(targetedIo.to).toHaveBeenCalledWith(`facility:${facA}`);
+  expect(targetedIo.to).not.toHaveBeenCalledWith(`facility:${facB}`);
+
+  app.set('io', fakeIo());
 });
