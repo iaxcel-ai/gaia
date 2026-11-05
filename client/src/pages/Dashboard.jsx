@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getFacilities, getFacilityStatus, updateFacilityStatus } from '../api/facilities';
 import ResourceCard from '../components/ResourceCard';
@@ -54,6 +55,14 @@ export default function Dashboard() {
           <option key={f.id} value={f.id}>{f.name}</option>
         ))}
       </select>
+
+      <ul>
+        {facilities.filter((f) => f.id !== user.facility_id).map((f) => (
+          <li key={f.id}>
+            {f.name} <Link to={`/referrals/new/${f.id}`}>Refer patient here</Link>
+          </li>
+        ))}
+      </ul>
 
       {error && <p role="alert">{error}</p>}
 

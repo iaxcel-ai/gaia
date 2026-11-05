@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import ReferralForm from './pages/ReferralForm';
 
 function RequireUser({ children }) {
   const { user } = useAuth();
@@ -26,6 +27,14 @@ export default function App() {
               element={
                 <RequireUser>
                   <Dashboard />
+                </RequireUser>
+              }
+            />
+            <Route
+              path="/referrals/new/:facilityId"
+              element={
+                <RequireUser>
+                  <ReferralForm />
                 </RequireUser>
               }
             />
