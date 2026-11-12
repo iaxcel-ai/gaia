@@ -7,6 +7,7 @@ import ReferralForm from './pages/ReferralForm';
 import Referrals from './pages/Referrals';
 import DistrictReports from './pages/DistrictReports';
 import AdminUsers from './pages/AdminUsers';
+import ThemeToggle from './components/ThemeToggle';
 
 // Top bar and page container shared by every page behind the login.
 function Layout({ children }) {
@@ -16,6 +17,7 @@ function Layout({ children }) {
       <header className="topbar">
         <Link to="/dashboard">Gaia</Link>
         <span>{user.username}</span>
+        <ThemeToggle />
         <button onClick={logout}>Log out</button>
       </header>
       <main>{children}</main>
