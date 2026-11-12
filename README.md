@@ -4,9 +4,14 @@ A real-time referral and resource-visibility platform for Rwanda's rural health 
 
 ## Status
 
-**Phase 1 (Foundation) is complete.** Project scaffold, the full PostgreSQL schema, and JWT-based authentication (login, logout, role checks, admin-assisted password reset) are implemented end to end, with a React login page wired to the real API. Both test suites are green, and the flow has been verified in a real browser: logging in as the seeded admin takes you to the dashboard placeholder.
+Phases 1 to 4 are built. Each has its own plan in `docs/plans/`.
 
-Not yet built: the resource dashboard, the referral workflow (create/accept/decline/complete, real-time alerts, SMS fallback), district-level reporting, and Kinyarwanda translations. These are Phases 2-4; each gets its own plan in `docs/plans/` before work starts.
+- **Phase 1 (Foundation):** project scaffold, the PostgreSQL schema, and JWT-based authentication (login, logout, role checks, admin-assisted password reset), with a React login page.
+- **Phase 2 (Resource dashboard):** facility resource status (beds, specialists, supplies) with append-only history and a stale-data flag, shown in a facility view and a read-only network view.
+- **Phase 3 (Referral workflow):** create, accept, decline, complete and cancel referrals, with real-time alerts over Socket.IO, a logged SMS stub as fallback, and audit logging.
+- **Phase 4 (District reporting and staff accounts):** a district admin can view a district report (referral counts by status, facilities sending and receiving the most referrals, recurring resource gaps) and create staff accounts.
+
+Not yet built: Kinyarwanda translations (accurate clinical translation needs a native speaker) and visual styling.
 
 ## Running it locally
 
