@@ -72,6 +72,7 @@ export default function AdminUsers() {
           <input id="new-username" value={username} onChange={(e) => setUsername(e.target.value)} />
           <label htmlFor="new-password">Password</label>
           <PasswordInput id="new-password" value={password} onChange={setPassword} />
+          <small>At least 7 characters.</small>
           <label htmlFor="new-role">Role</label>
           <select id="new-role" value={role} onChange={(e) => setRole(e.target.value)}>
             {STAFF_ROLES.map((r) => (

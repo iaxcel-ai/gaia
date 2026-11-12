@@ -40,6 +40,7 @@ export default function ResetPasswordForm({ staff }) {
       </select>
       <label htmlFor="reset-password">New password</label>
       <PasswordInput id="reset-password" value={newPassword} onChange={setNewPassword} />
+      <small>At least 7 characters.</small>
       <button type="submit">Reset password</button>
       {message && <p className="notice">{message}</p>}
       {error && <p role="alert">{error}</p>}
