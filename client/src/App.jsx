@@ -13,6 +13,12 @@ function RequireUser({ children }) {
   return user ? children : <Navigate to="/login" />;
 }
 
+export function RequireAdmin({ children }) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" />;
+  return user.role === 'district_admin' ? children : <Navigate to="/dashboard" />;
+}
+
 function Home() {
   const { user } = useAuth();
   return <Navigate to={user ? '/dashboard' : '/login'} />;
@@ -52,17 +58,17 @@ export default function App() {
             <Route
               path="/reports"
               element={
-                <RequireUser>
+                <RequireAdmin>
                   <DistrictReports />
-                </RequireUser>
+                </RequireAdmin>
               }
             />
             <Route
               path="/admin/users"
               element={
-                <RequireUser>
+                <RequireAdmin>
                   <AdminUsers />
-                </RequireUser>
+                </RequireAdmin>
               }
             />
             <Route path="/" element={<Home />} />
