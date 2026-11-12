@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getFacilities } from '../api/facilities';
 import { createUser } from '../api/admin';
+import ResetPasswordForm from '../components/ResetPasswordForm';
 
 const STAFF_ROLES = ['chw', 'nurse'];
 
@@ -42,6 +43,7 @@ export default function AdminUsers() {
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit}>
       <h1>Create a staff account</h1>
       <label htmlFor="new-username">Username</label>
@@ -62,8 +64,10 @@ export default function AdminUsers() {
         ))}
       </select>
       <button type="submit">Create account</button>
-      {message && <p>{message}</p>}
+      {message && <p className="notice">{message}</p>}
       {error && <p role="alert">{error}</p>}
     </form>
+    <ResetPasswordForm />
+    </>
   );
 }

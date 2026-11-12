@@ -8,6 +8,7 @@ import { createUser } from '../src/api/admin';
 
 vi.mock('../src/api/facilities');
 vi.mock('../src/api/admin');
+vi.mock('../src/api/auth');
 
 function renderPage() {
   return render(
@@ -27,8 +28,8 @@ beforeEach(() => {
 });
 
 async function fillAndSubmit({ chooseFacility = true } = {}) {
-  await userEvent.type(screen.getByLabelText(/username/i), 'newnurse');
-  await userEvent.type(screen.getByLabelText(/password/i), 'secret123');
+  await userEvent.type(screen.getByLabelText('Username'), 'newnurse');
+  await userEvent.type(screen.getByLabelText('Password'), 'secret123');
   await userEvent.selectOptions(screen.getByLabelText(/role/i), 'nurse');
   if (chooseFacility) {
     await userEvent.selectOptions(screen.getByLabelText(/facility/i), 'Facility Two');
@@ -67,4 +68,9 @@ test('submitting without choosing a facility asks for one and does not call crea
   await fillAndSubmit({ chooseFacility: false });
   expect(await screen.findByRole('alert')).toHaveTextContent('Choose a facility');
   expect(createUser).not.toHaveBeenCalled();
+});
+
+test('the page also offers the password reset form', async () => {
+  renderPage();
+  expect(await screen.findByRole('button', { name: 'Reset password' })).toBeInTheDocument();
 });
