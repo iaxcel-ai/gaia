@@ -1,3 +1,3 @@
 export default function ReferralStatusBadge({ status }) {
-  return <span>{status}</span>;
+  return <span className={`badge badge-${status}`}>{status}</span>;
 }

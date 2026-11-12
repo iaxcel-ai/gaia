@@ -1,3 +1,3 @@
 export default function StaleFlag() {
-  return <span>Stale</span>;
+  return <span className="badge badge-stale">Stale</span>;
 }

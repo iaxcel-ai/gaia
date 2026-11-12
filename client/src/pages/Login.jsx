@@ -21,7 +21,7 @@ export default function Login() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="login" onSubmit={handleSubmit}>
       <h1>Gaia</h1>
       <label htmlFor="username">Username</label>
       <input

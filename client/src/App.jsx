@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import Login from './pages/Login';
@@ -8,15 +8,30 @@ import Referrals from './pages/Referrals';
 import DistrictReports from './pages/DistrictReports';
 import AdminUsers from './pages/AdminUsers';
 
+// Top bar and page container shared by every page behind the login.
+function Layout({ children }) {
+  const { user, logout } = useAuth();
+  return (
+    <>
+      <header className="topbar">
+        <Link to="/dashboard">Gaia</Link>
+        <span>{user.username}</span>
+        <button onClick={logout}>Log out</button>
+      </header>
+      <main>{children}</main>
+    </>
+  );
+}
+
 function RequireUser({ children }) {
   const { user } = useAuth();
-  return user ? children : <Navigate to="/login" />;
+  return user ? <Layout>{children}</Layout> : <Navigate to="/login" />;
 }
 
 export function RequireAdmin({ children }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" />;
-  return user.role === 'district_admin' ? children : <Navigate to="/dashboard" />;
+  return user.role === 'district_admin' ? <Layout>{children}</Layout> : <Navigate to="/dashboard" />;
 }
 
 function Home() {
@@ -30,7 +45,7 @@ export default function App() {
       <SocketProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<main><Login /></main>} />
             <Route
               path="/dashboard"
               element={

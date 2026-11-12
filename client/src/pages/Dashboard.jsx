@@ -49,7 +49,7 @@ export default function Dashboard() {
   if (selectedFacilityId == null) {
     return (
       <div>
-        {adminLinks}
+        <nav className="links">{adminLinks}</nav>
         <p>Select a facility to get started.</p>
       </div>
     );
@@ -57,8 +57,10 @@ export default function Dashboard() {
 
   return (
     <div>
-      <Link to="/referrals">Referrals</Link>
-      {adminLinks}
+      <nav className="links">
+        <Link to="/referrals">Referrals</Link>
+        {adminLinks}
+      </nav>
       <label htmlFor="facility-select">Facility</label>
       <select
         id="facility-select"
@@ -70,7 +72,7 @@ export default function Dashboard() {
         ))}
       </select>
 
-      <ul>
+      <ul className="rows">
         {facilities.filter((f) => f.id !== user.facility_id).map((f) => (
           <li key={f.id}>
             {f.name} <Link to={`/referrals/new/${f.id}`}>Refer patient here</Link>
@@ -80,12 +82,14 @@ export default function Dashboard() {
 
       {error && <p role="alert">{error}</p>}
 
-      {RESOURCE_TYPES.map((t) => {
-        const entry = status.find((s) => s.type === t);
-        return entry
-          ? <ResourceCard key={t} type={entry.type} quantity={entry.quantity} stale={entry.stale} />
-          : <p key={t}>{t}: no data</p>;
-      })}
+      <div className="resources">
+        {RESOURCE_TYPES.map((t) => {
+          const entry = status.find((s) => s.type === t);
+          return entry
+            ? <ResourceCard key={t} type={entry.type} quantity={entry.quantity} stale={entry.stale} />
+            : <p key={t} className="resource">{t}: no data</p>;
+        })}
+      </div>
 
       {selectedFacilityId === user.facility_id && (
         <form onSubmit={handleSubmit}>

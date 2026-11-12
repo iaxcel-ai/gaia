@@ -1,0 +1,230 @@
+/* Gaia styles. One file, plain CSS, system fonts (no downloads on slow connections). */
+
+:root {
+  --ink: #16222b;
+  --muted: #5a6872;
+  --page: #edf1f0;
+  --surface: #ffffff;
+  --brand: #0b5c56;
+  --brand-tint: #dcebe9;
+  --warn: #8a4b00;
+  --warn-tint: #fdecc8;
+  --danger: #a3201a;
+  --danger-tint: #fbe3e1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+main {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+h1 {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  margin: 0 0 1rem;
+}
+
+h2 {
+  font-size: 1.15rem;
+  margin: 2rem 0 0.5rem;
+}
+
+a {
+  color: var(--brand);
+  font-weight: 600;
+}
+
+/* Top bar shown on every page after login */
+.topbar {
+  background: var(--brand);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.topbar a {
+  color: #ffffff;
+  font-size: 1.25rem;
+  text-decoration: none;
+}
+
+.topbar span {
+  margin-left: auto;
+}
+
+.topbar button {
+  background: transparent;
+  border: 1px solid #ffffff;
+}
+
+/* Row of page links at the top of the dashboard */
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Forms */
+form {
+  display: grid;
+  gap: 0.4rem;
+  max-width: 26rem;
+  background: var(--surface);
+  padding: 1.25rem;
+  border-radius: 8px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+input,
+select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid #9aa7ae;
+  border-radius: 6px;
+  padding: 0.6rem 0.7rem;
+  width: 100%;
+  max-width: 26rem;
+}
+
+button {
+  font: inherit;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--brand);
+  border: 0;
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+}
+
+form button {
+  margin-top: 0.75rem;
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--warn);
+  outline-offset: 2px;
+}
+
+/* Error messages */
+[role='alert'] {
+  background: var(--danger-tint);
+  color: var(--danger);
+  font-weight: 600;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+}
+
+/* Login page */
+.login {
+  margin: 4rem auto 0;
+}
+
+/* Lists where each item is its own row: facilities, referrals */
+.rows {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.rows li {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.rows li a,
+.rows li button:first-of-type {
+  margin-left: auto;
+}
+
+.rows button {
+  padding: 0.4rem 0.8rem;
+}
+
+/* Resource status cards on the dashboard */
+.resources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.resource {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 0;
+  display: grid;
+  gap: 0.25rem;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+
+.resource .quantity {
+  color: var(--ink);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Small labels: referral status and the stale-data warning */
+.badge {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--page);
+  color: var(--muted);
+  justify-self: start;
+}
+
+.badge-pending,
+.badge-stale {
+  background: var(--warn-tint);
+  color: var(--warn);
+}
+
+.badge-accepted,
+.badge-completed {
+  background: var(--brand-tint);
+  color: var(--brand);
+}
+
+.badge-declined {
+  background: var(--danger-tint);
+  color: var(--danger);
+}

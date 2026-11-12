@@ -2,9 +2,9 @@ import StaleFlag from './StaleFlag';
 
 export default function ResourceCard({ type, quantity, stale }) {
   return (
-    <div>
+    <div className="resource">
       <span>{type}</span>
-      <span>{quantity}</span>
+      <span className="quantity">{quantity}</span>
       {stale && <StaleFlag />}
     </div>
   );

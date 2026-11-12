@@ -29,7 +29,7 @@ export default function Referrals() {
     <div>
       <h1>Referrals</h1>
       {error && <p role="alert">{error}</p>}
-      <ul>
+      <ul className="rows">
         {referrals.map((r) => (
           <li key={r.id}>
             {r.patient_ref} <ReferralStatusBadge status={r.status} />
