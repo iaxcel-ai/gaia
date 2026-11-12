@@ -1,6 +1,6 @@
 const express = require('express');
 const { query } = require('../db');
-const { hashPassword, verifyPassword, issueToken } = require('../services/authService');
+const { hashPassword, verifyPassword, issueToken, MIN_PASSWORD_LENGTH } = require('../services/authService');
 const requireAuth = require('../middleware/requireAuth');
 const requireRole = require('../middleware/requireRole');
 const asyncHandler = require('../middleware/asyncHandler');
@@ -42,6 +42,10 @@ router.post('/reset-password', requireAuth, requireRole('district_admin'), async
   const { username, newPassword } = req.body;
   if (typeof username !== 'string' || typeof newPassword !== 'string') {
     return res.status(400).json({ error: 'Username and newPassword are required' });
+  }
+
+  if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` });
   }
 
   const hash = await hashPassword(newPassword);

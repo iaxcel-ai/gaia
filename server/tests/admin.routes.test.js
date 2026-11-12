@@ -122,6 +122,19 @@ test('missing fields are rejected with 400', async () => {
   expect(res.status).toBe(400);
 });
 
+test('a password shorter than 7 characters is rejected with 400', async () => {
+  const short = await createUser(adminToken, {
+    username: 'admin-test-shortpw', password: 'six666', role: 'nurse', facility_id: facilityId,
+  });
+  expect(short.status).toBe(400);
+  expect(short.body.error).toBe('Password must be at least 7 characters');
+
+  const longEnough = await createUser(adminToken, {
+    username: 'admin-test-shortpw', password: 'seven77', role: 'nurse', facility_id: facilityId,
+  });
+  expect(longEnough.status).toBe(201);
+});
+
 test('an unknown facility_id is rejected with 400', async () => {
   const res = await createUser(adminToken, {
     username: 'admin-test-nofac', password: 'secret123', role: 'nurse', facility_id: 2147483647,

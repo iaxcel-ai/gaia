@@ -116,6 +116,12 @@ test('reset-password without a newPassword returns 400', async () => {
   expect(res.status).toBe(400);
 });
 
+test('reset-password with a password shorter than 7 characters returns 400', async () => {
+  const res = await resetPassword(resetAdminToken, { username: 'reset-test-nurse', newPassword: 'six666' });
+  expect(res.status).toBe(400);
+  expect(res.body.error).toBe('Password must be at least 7 characters');
+});
+
 test('reset-password for a username that does not exist returns 404', async () => {
   const res = await resetPassword(resetAdminToken, { username: 'nobody', newPassword: 'whatever123' });
   expect(res.status).toBe(404);

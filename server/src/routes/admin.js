@@ -1,6 +1,6 @@
 const express = require('express');
 const { query } = require('../db');
-const { hashPassword } = require('../services/authService');
+const { hashPassword, MIN_PASSWORD_LENGTH } = require('../services/authService');
 const { writeAudit } = require('../services/auditService');
 const requireAuth = require('../middleware/requireAuth');
 const requireRole = require('../middleware/requireRole');
@@ -35,6 +35,10 @@ router.post('/users', requireAuth, requireRole('district_admin'), asyncHandler(a
     !STAFF_ROLES.includes(role) || !validFacilityId
   ) {
     return res.status(400).json({ error: 'username, password, role (chw or nurse) and facility_id are required' });
+  }
+
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return res.status(400).json({ error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` });
   }
 
   const facility = await query('SELECT district_id FROM facilities WHERE id = $1', [facilityId]);

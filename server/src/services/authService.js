@@ -27,4 +27,7 @@ function verifyToken(token) {
   }
 }
 
-module.exports = { hashPassword, verifyPassword, issueToken, verifyToken };
+// Shortest password accepted when an account is created or a password is reset.
+const MIN_PASSWORD_LENGTH = 7;
+
+module.exports = { hashPassword, verifyPassword, issueToken, verifyToken, MIN_PASSWORD_LENGTH };
