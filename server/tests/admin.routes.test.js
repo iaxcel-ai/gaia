@@ -135,3 +135,41 @@ test('a duplicate username is rejected with 409', async () => {
   const res = await createUser(adminToken, body);
   expect(res.status).toBe(409);
 });
+
+function listUsers(token) {
+  return request(app).get('/admin/users').set('Authorization', `Bearer ${token}`);
+}
+
+test('an admin sees the staff of their own district, without password hashes', async () => {
+  await query(
+    `INSERT INTO users (username, password_hash, role, facility_id) VALUES ('admin-test-elsewhere', 'x', 'nurse', $1)`,
+    [otherDistrictFacilityId]
+  );
+  const res = await listUsers(adminToken);
+  expect(res.status).toBe(200);
+
+  const usernames = res.body.map((u) => u.username);
+  expect(usernames).toContain('admin-test-admin');
+  expect(usernames).toContain('admin-test-nurse');
+  expect(usernames).not.toContain('admin-test-elsewhere');
+
+  const nurse = res.body.find((u) => u.username === 'admin-test-nurse');
+  expect(nurse).toEqual({
+    id: expect.any(Number),
+    username: 'admin-test-nurse',
+    role: 'nurse',
+    facility_id: facilityId,
+    facility_name: 'Admin Test Facility',
+  });
+});
+
+test('the staff list is sorted by username', async () => {
+  const res = await listUsers(adminToken);
+  const usernames = res.body.map((u) => u.username);
+  expect(usernames).toEqual([...usernames].sort());
+});
+
+test('a nurse cannot list staff', async () => {
+  const res = await listUsers(nurseToken);
+  expect(res.status).toBe(403);
+});

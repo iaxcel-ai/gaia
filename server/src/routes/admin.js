@@ -12,6 +12,19 @@ const UNIQUE_VIOLATION = '23505';
 
 const router = express.Router();
 
+// Lists the staff accounts in the admin's own district, never the password hashes.
+router.get('/users', requireAuth, requireRole('district_admin'), asyncHandler(async (req, res) => {
+  const result = await query(
+    `SELECT u.id, u.username, u.role, u.facility_id, f.name AS facility_name
+     FROM users u
+     JOIN facilities f ON f.id = u.facility_id
+     WHERE f.district_id = (SELECT district_id FROM facilities WHERE id = $1)
+     ORDER BY u.username`,
+    [req.user.facility_id]
+  );
+  res.status(200).json(result.rows);
+}));
+
 router.post('/users', requireAuth, requireRole('district_admin'), asyncHandler(async (req, res) => {
   const { password, role, facility_id: facilityId } = req.body;
   const username = typeof req.body.username === 'string' ? req.body.username.trim() : '';
