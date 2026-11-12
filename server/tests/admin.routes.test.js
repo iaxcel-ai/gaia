@@ -4,9 +4,11 @@ const { query, closePool } = require('../src/db');
 const { issueToken } = require('../src/services/authService');
 
 let facilityId;
+let otherDistrictFacilityId;
 let adminId;
 let adminToken;
 let nurseToken;
+let chwToken;
 
 beforeAll(async () => {
   await query(
@@ -21,15 +23,24 @@ beforeAll(async () => {
   );
   facilityId = facility.rows[0].id;
 
+  const otherDistrict = await query(`INSERT INTO districts (name) VALUES ('AdminTestOtherDistrict') RETURNING id`);
+  const otherFacility = await query(
+    `INSERT INTO facilities (district_id, name, tier) VALUES ($1, 'Admin Test Other Facility', 'health_center') RETURNING id`,
+    [otherDistrict.rows[0].id]
+  );
+  otherDistrictFacilityId = otherFacility.rows[0].id;
+
   const users = await query(
     `INSERT INTO users (username, password_hash, role, facility_id)
-     VALUES ('admin-test-admin', 'x', 'district_admin', $1), ('admin-test-nurse', 'x', 'nurse', $1)
+     VALUES ('admin-test-admin', 'x', 'district_admin', $1), ('admin-test-nurse', 'x', 'nurse', $1),
+            ('admin-test-chw', 'x', 'chw', $1)
      RETURNING id`,
     [facilityId]
   );
   adminId = users.rows[0].id;
   adminToken = issueToken({ id: adminId, username: 'admin-test-admin', role: 'district_admin', facility_id: facilityId });
   nurseToken = issueToken({ id: users.rows[1].id, username: 'admin-test-nurse', role: 'nurse', facility_id: facilityId });
+  chwToken = issueToken({ id: users.rows[2].id, username: 'admin-test-chw', role: 'chw', facility_id: facilityId });
 });
 
 afterAll(() => closePool());
@@ -52,11 +63,39 @@ test('a district_admin creates a staff account that can then log in', async () =
 });
 
 test('creating a staff account writes an audit row for the admin', async () => {
-  await createUser(adminToken, {
+  const before = await query(`SELECT id FROM audit_log WHERE user_id = $1`, [adminId]);
+  const res = await createUser(adminToken, {
     username: 'admin-test-audited', password: 'secret123', role: 'chw', facility_id: facilityId,
   });
-  const audit = await query(`SELECT action FROM audit_log WHERE user_id = $1`, [adminId]);
-  expect(audit.rows.length).toBeGreaterThan(0);
+  expect(res.status).toBe(201);
+  const after = await query(`SELECT action FROM audit_log WHERE user_id = $1 ORDER BY id`, [adminId]);
+  expect(after.rows.length).toBe(before.rows.length + 1);
+  expect(after.rows[after.rows.length - 1].action).toBe('user_created');
+});
+
+test('a username is stored without surrounding spaces', async () => {
+  const res = await createUser(adminToken, {
+    username: ' admin-test-trim ', password: 'secret123', role: 'nurse', facility_id: facilityId,
+  });
+  expect(res.status).toBe(201);
+  expect(res.body.username).toBe('admin-test-trim');
+
+  const login = await request(app).post('/auth/login').send({ username: 'admin-test-trim', password: 'secret123' });
+  expect(login.status).toBe(200);
+});
+
+test('an admin cannot create an account at a facility in another district', async () => {
+  const res = await createUser(adminToken, {
+    username: 'admin-test-other-district', password: 'secret123', role: 'nurse', facility_id: otherDistrictFacilityId,
+  });
+  expect(res.status).toBe(403);
+});
+
+test('a chw cannot create accounts', async () => {
+  const res = await createUser(chwToken, {
+    username: 'admin-test-by-chw', password: 'secret123', role: 'nurse', facility_id: facilityId,
+  });
+  expect(res.status).toBe(403);
 });
 
 test('a nurse cannot create accounts', async () => {
