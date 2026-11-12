@@ -1,8 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { test, expect } from 'vitest';
+import { vi, test, expect, beforeEach } from 'vitest';
 import { AuthContext } from '../src/context/AuthContext';
 import { RequireAdmin } from '../src/App';
+import { getReferrals } from '../src/api/referrals';
+
+// The navigation bar around the page loads the referral count.
+vi.mock('../src/api/referrals');
+
+beforeEach(() => {
+  getReferrals.mockResolvedValue([]);
+});
 
 function renderAs(user) {
   return render(
