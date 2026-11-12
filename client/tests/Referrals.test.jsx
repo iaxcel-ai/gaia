@@ -182,3 +182,16 @@ test('a received referral is labelled with the facility it came from', async () 
   await screen.findByText('P-1');
   expect(screen.getByText('From Facility One')).toBeInTheDocument();
 });
+
+test('clicking a referral opens it, and clicking again closes it', async () => {
+  getReferrals.mockResolvedValue([
+    { id: 1, patient_ref: 'P-1', status: 'pending', referring_facility_id: 1, receiving_facility_id: 2 },
+  ]);
+  renderWithAuth({ facility_id: 1 });
+  const row = await screen.findByRole('button', { name: /P-1/ });
+  expect(row).toHaveAttribute('aria-expanded', 'false');
+  await userEvent.click(row);
+  expect(row).toHaveAttribute('aria-expanded', 'true');
+  await userEvent.click(row);
+  expect(row).toHaveAttribute('aria-expanded', 'false');
+});

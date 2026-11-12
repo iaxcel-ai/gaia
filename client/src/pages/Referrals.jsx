@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { getReferrals, respondToReferral } from '../api/referrals';
@@ -9,6 +10,7 @@ export default function Referrals() {
   const { lastReferralEvent } = useSocket();
   const [referrals, setReferrals] = useState([]);
   const [error, setError] = useState(null);
+  const [openId, setOpenId] = useState(null);
 
   useEffect(() => {
     getReferrals().then(setReferrals).catch((e) => setError(e.message));
@@ -35,9 +37,14 @@ export default function Referrals() {
       <ul className="rows">
         {referrals.map((r) => (
           <li key={r.id}>
-            {/* Click a referral to open it and see what it is about. */}
-            <details>
-              <summary>
+            {/* Click a referral to open it and see what it is about; click again to close it. */}
+            <div className={openId === r.id ? 'collapse open' : 'collapse'}>
+              <button
+                className="row-toggle"
+                aria-expanded={openId === r.id}
+                onClick={() => setOpenId(openId === r.id ? null : r.id)}
+              >
+                <ChevronDownIcon className="icon chevron" />
                 <span>{r.patient_ref}</span>
                 <ReferralStatusBadge status={r.status} />
                 <small>
@@ -45,7 +52,10 @@ export default function Referrals() {
                     ? `To ${r.receiving_facility_name}`
                     : `From ${r.referring_facility_name}`}
                 </small>
-              </summary>
+              </button>
+              {/* The outer div animates the height, the inner one holds the content. */}
+              <div className="collapse-body">
+              <div>
               <dl>
                 <dt>Condition</dt>
                 <dd>{r.condition}</dd>
@@ -72,7 +82,9 @@ export default function Referrals() {
                   <button className="secondary" onClick={() => respond(r.id, 'cancel')}>Cancel</button>
                 )}
               </div>
-            </details>
+              </div>
+              </div>
+            </div>
           </li>
         ))}
       </ul>

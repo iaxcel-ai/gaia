@@ -6,6 +6,7 @@
   --bg: #f7faf6;
   --card: #eaf4ec;
   --field: #ffffff;
+  --hover: #d9eadd;
   --text: #20332b;
   --muted: #4c6157;
   --border: #9db3a6;
@@ -23,6 +24,7 @@
   --bg: #111e18;
   --card: #1b2e26;
   --field: #111e18;
+  --hover: #26402f;
   --text: #e6f0e9;
   --muted: #a9bdb1;
   --border: #55705f;
@@ -353,24 +355,77 @@ tbody tr {
   padding: 0.25rem 0.7rem;
 }
 
-/* A referral row that opens to show its details */
-.rows details {
-  width: 100%;
-  margin: 0;
-  font-size: inherit;
+/* A referral row: a header you click, and a body that slides open and closed */
+.rows li:has(.collapse) {
+  padding: 0;
 }
 
-.rows summary {
+.collapse {
+  width: 100%;
+}
+
+.rows .row-toggle {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 0.6rem;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 2.6rem;
+  padding: 0.45rem 0.85rem;
+  background: transparent;
   color: var(--text);
+  font-weight: 400;
+  text-align: left;
+  border-radius: 8px;
 }
 
-.rows summary small {
+.row-toggle span:first-of-type {
+  font-weight: 600;
+}
+
+/* Only things you can click change when the pointer is over them */
+.row-toggle:hover,
+button.secondary:hover {
+  background: var(--hover);
+  filter: none;
+}
+
+.row-toggle:active {
+  transform: none;
+}
+
+.row-toggle small {
   display: inline;
   margin-left: auto;
+}
+
+.chevron {
+  transition: transform 0.25s ease;
+}
+
+.open .chevron {
+  transform: rotate(180deg);
+}
+
+/* Height goes from 0 to the content's own height and back, so closing is as smooth as opening */
+.collapse-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows 0.25s ease, visibility 0.25s;
+}
+
+.open .collapse-body {
+  grid-template-rows: 1fr;
+  visibility: visible;
+}
+
+.collapse-body > div {
+  overflow: hidden;
+  padding: 0 0.85rem;
+}
+
+.open .collapse-body > div {
+  padding-bottom: 0.75rem;
 }
 
 dl {
@@ -494,7 +549,7 @@ main > * {
   animation: rise 0.25s ease-out;
 }
 
-/* A referral's details ease in when it is opened */
+/* The help notes on the login page ease in when opened */
 details[open] > :not(summary) {
   animation: rise 0.2s ease-out;
 }
@@ -519,22 +574,8 @@ select {
 
 .topbar a,
 .topbar button,
-.rows li {
+.rows .row-toggle {
   transition: background-color 0.15s;
-}
-
-/* The row under the pointer is picked out */
-.rows li:hover {
-  background: var(--field);
-}
-
-/* Cards lift slightly under the pointer */
-.resource {
-  transition: transform 0.15s, background-color 0.2s, color 0.2s;
-}
-
-.resource:hover {
-  transform: translateY(-2px);
 }
 
 /* People who ask their device for less motion get none */
