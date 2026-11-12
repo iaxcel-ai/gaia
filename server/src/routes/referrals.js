@@ -5,6 +5,8 @@ const asyncHandler = require('../middleware/asyncHandler');
 const { writeAudit } = require('../services/auditService');
 const { notify } = require('../services/notificationService');
 
+const RESOURCE_TYPES = ['bed', 'specialist', 'supply'];
+
 const router = express.Router();
 
 router.post('/', requireAuth, asyncHandler(async (req, res) => {
@@ -24,6 +26,10 @@ router.post('/', requireAuth, asyncHandler(async (req, res) => {
     || typeof condition !== 'string' || !condition
     || typeof resource_required !== 'string' || !resource_required) {
     return res.status(400).json({ error: 'patient_ref, condition, and resource_required are required' });
+  }
+
+  if (!RESOURCE_TYPES.includes(resource_required)) {
+    return res.status(400).json({ error: 'resource_required must be bed, specialist or supply' });
   }
 
   const facility = await query('SELECT id FROM facilities WHERE id = $1', [receivingFacilityId]);

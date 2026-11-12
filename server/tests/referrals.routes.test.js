@@ -84,6 +84,12 @@ test('POST /referrals with a non-numeric receiving_facility_id is rejected with 
   expect(res.status).toBe(400);
 });
 
+test('POST /referrals with a resource that is not bed, specialist or supply is rejected with 400', async () => {
+  const res = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-BAD', condition: 'fever', resource_required: 'helicopter' });
+  expect(res.status).toBe(400);
+});
+
 test('POST /referrals audits the creation', async () => {
   const res = await request(app).post('/referrals')
     .set('Authorization', `Bearer ${tokenA}`)
