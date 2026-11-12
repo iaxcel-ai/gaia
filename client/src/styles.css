@@ -327,6 +327,12 @@ details p {
   padding: 0.25rem 0.7rem;
 }
 
+/* Second line under a facility name: its type and sector */
+.rows small {
+  display: block;
+  color: var(--muted);
+}
+
 /* A long list scrolls inside its own box instead of stretching the page */
 .scroll {
   max-height: 26rem;

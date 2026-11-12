@@ -109,7 +109,11 @@ export default function Dashboard() {
           <ul className="rows scroll">
             {facilities.filter((f) => f.id !== user.facility_id).map((f) => (
               <li key={f.id}>
-                {f.name} <Link to={`/referrals/new/${f.id}`}>Refer patient here</Link>
+                <span>
+                  {f.name}
+                  <small>{[f.tier, f.sector].filter(Boolean).join(', ')}</small>
+                </span>
+                <Link to={`/referrals/new/${f.id}`}>Refer patient here</Link>
               </li>
             ))}
           </ul>
