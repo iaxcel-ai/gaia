@@ -96,3 +96,36 @@ test('a resource type that was never reported shows as no data', async () => {
   await screen.findByText('5');
   expect(screen.getByText('specialist: no data')).toBeInTheDocument();
 });
+
+const NETWORK = [
+  { id: 1, name: 'Own Facility' },
+  { id: 2, name: 'Has Beds', bed: 4, specialist: 0, supply: null },
+  { id: 3, name: 'Has Specialists', bed: 0, specialist: 2, supply: 7 },
+];
+
+test('each facility in the refer list shows its latest resource counts', async () => {
+  getFacilities.mockResolvedValue(NETWORK);
+  getFacilityStatus.mockResolvedValue({ facility_id: 1, status: [] });
+  renderWithAuth({ facility_id: 1 });
+  expect(await screen.findByText('bed 4 · specialist 0 · supply no data')).toBeInTheDocument();
+  expect(screen.getByText('bed 0 · specialist 2 · supply 7')).toBeInTheDocument();
+});
+
+test('choosing what the patient needs lists only facilities that have it', async () => {
+  getFacilities.mockResolvedValue(NETWORK);
+  getFacilityStatus.mockResolvedValue({ facility_id: 1, status: [] });
+  renderWithAuth({ facility_id: 1 });
+  await screen.findByText('bed 4 · specialist 0 · supply no data');
+  await userEvent.selectOptions(screen.getByLabelText('Patient needs'), 'bed');
+  expect(screen.getByText('bed 4 · specialist 0 · supply no data')).toBeInTheDocument();
+  expect(screen.queryByText('bed 0 · specialist 2 · supply 7')).not.toBeInTheDocument();
+});
+
+test('says so when no facility has the needed resource', async () => {
+  getFacilities.mockResolvedValue([{ id: 1, name: 'Own Facility' }, { id: 2, name: 'Empty', bed: 0, specialist: null, supply: null }]);
+  getFacilityStatus.mockResolvedValue({ facility_id: 1, status: [] });
+  renderWithAuth({ facility_id: 1 });
+  await screen.findByText('bed 0 · specialist no data · supply no data');
+  await userEvent.selectOptions(screen.getByLabelText('Patient needs'), 'supply');
+  expect(screen.getByText('No facility has reported this resource as available.')).toBeInTheDocument();
+});

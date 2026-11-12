@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [updateType, setUpdateType] = useState(RESOURCE_TYPES[0]);
   const [quantity, setQuantity] = useState('');
   const [error, setError] = useState(null);
+  const [need, setNeed] = useState('');
 
   useEffect(() => {
     getFacilities().then(setFacilities).catch((e) => setError(e.message));
@@ -38,6 +39,12 @@ export default function Dashboard() {
       setError(err.message);
     }
   }
+
+  // The facilities a patient could be sent to. When a need is chosen,
+  // only those that last reported having that resource are listed.
+  const otherFacilities = facilities
+    .filter((f) => f.id !== user.facility_id)
+    .filter((f) => need === '' || f[need] > 0);
 
   const welcome = (
     <>
@@ -106,12 +113,25 @@ export default function Dashboard() {
 
         <section>
           <h2>Refer a patient</h2>
+          <label htmlFor="need">Patient needs</label>
+          <select id="need" value={need} onChange={(e) => setNeed(e.target.value)}>
+            <option value="">Any resource</option>
+            {RESOURCE_TYPES.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          {otherFacilities.length === 0 && (
+            <p className="empty">No facility has reported this resource as available.</p>
+          )}
           <ul className="rows scroll">
-            {facilities.filter((f) => f.id !== user.facility_id).map((f) => (
+            {otherFacilities.map((f) => (
               <li key={f.id}>
                 <span>
                   {f.name}
                   <small>{[f.tier, f.sector].filter(Boolean).join(', ')}</small>
+                  <small>
+                    {RESOURCE_TYPES.map((t) => `${t} ${f[t] == null ? 'no data' : f[t]}`).join(' · ')}
+                  </small>
                 </span>
                 <Link to={`/referrals/new/${f.id}`}>Refer patient here</Link>
               </li>
