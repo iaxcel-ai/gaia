@@ -4,6 +4,7 @@ const authRoutes = require('./routes/auth');
 const facilitiesRoutes = require('./routes/facilities');
 const referralsRoutes = require('./routes/referrals');
 const adminRoutes = require('./routes/admin');
+const reportsRoutes = require('./routes/reports');
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use('/auth', authRoutes);
 app.use('/facilities', facilitiesRoutes);
 app.use('/referrals', referralsRoutes);
 app.use('/admin', adminRoutes);
+app.use('/reports', reportsRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
