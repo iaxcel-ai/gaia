@@ -53,6 +53,18 @@ test('GET /facilities includes the type and sector of each facility', async () =
   expect(facility.tier).toBeDefined();
 });
 
+test('GET /facilities includes the latest count of each resource, or null when never reported', async () => {
+  await query(
+    `INSERT INTO resource_status (facility_id, type, quantity, updated_at) VALUES ($1, 'bed', 9, now() - interval '1 day')`,
+    [facA]
+  );
+  const res = await request(app).get('/facilities').set('Authorization', `Bearer ${token}`);
+  const facility = res.body.find((f) => f.id === facA);
+  expect(facility.bed).toBe(5);
+  expect(facility.specialist).toBe(1);
+  expect(facility.supply).toBeNull();
+});
+
 test('GET /facilities requires auth', async () => {
   const res = await request(app).get('/facilities');
   expect(res.status).toBe(401);

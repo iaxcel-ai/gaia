@@ -14,7 +14,22 @@ function isValidFacilityId(id) {
 const router = express.Router();
 
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
-  const result = await query('SELECT id, name, tier, sector, district_id FROM facilities ORDER BY id');
+  // Each facility comes with its latest bed, specialist and supply counts (null when never reported),
+  // so staff can compare facilities without opening them one by one.
+  const result = await query(
+    `SELECT f.id, f.name, f.tier, f.sector, f.district_id,
+            (SELECT quantity FROM resource_status rs
+             WHERE rs.facility_id = f.id AND rs.type = 'bed'
+             ORDER BY rs.updated_at DESC LIMIT 1) AS bed,
+            (SELECT quantity FROM resource_status rs
+             WHERE rs.facility_id = f.id AND rs.type = 'specialist'
+             ORDER BY rs.updated_at DESC LIMIT 1) AS specialist,
+            (SELECT quantity FROM resource_status rs
+             WHERE rs.facility_id = f.id AND rs.type = 'supply'
+             ORDER BY rs.updated_at DESC LIMIT 1) AS supply
+     FROM facilities f
+     ORDER BY f.id`
+  );
   res.status(200).json(result.rows);
 }));
 
