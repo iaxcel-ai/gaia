@@ -122,6 +122,7 @@ test('referral totals count each referral touching the district once', async () 
   expect(res.body.referrals).toEqual({
     total: 4,
     by_status: { pending: 1, accepted: 1, declined: 1, completed: 1, cancelled: 0 },
+    decline_rate: 33,
   });
 });
 
@@ -134,6 +135,14 @@ test('top referring and receiving facilities are ranked, district facilities onl
   expect(res.body.top_receiving).toEqual([
     { facility_id: facB, name: 'Report Facility B', count: 2 },
     { facility_id: facA, name: 'Report Facility A', count: 1 },
+  ]);
+});
+
+// Of the three referrals that got an answer (accepted, declined, completed), one was declined.
+test('facilities that declined referrals are listed with how many they received', async () => {
+  const res = await getReport(adminToken, districtId);
+  expect(res.body.top_declining).toEqual([
+    { facility_id: facA, name: 'Report Facility A', declined: 1, received: 1 },
   ]);
 });
 
@@ -159,9 +168,11 @@ test('a district with no activity returns zeros and empty lists', async () => {
     referrals: {
       total: 0,
       by_status: { pending: 0, accepted: 0, declined: 0, completed: 0, cancelled: 0 },
+      decline_rate: 0,
     },
     top_referring: [],
     top_receiving: [],
+    top_declining: [],
     resource_gaps: [],
   });
 });

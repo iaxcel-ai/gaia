@@ -56,6 +56,24 @@ router.get('/district/:id', requireAuth, requireRole('district_admin'), asyncHan
     total += row.count;
   }
 
+  // Share of answered referrals (accepted, declined or completed) that were declined, as a whole percent.
+  const answered = byStatus.accepted + byStatus.declined + byStatus.completed;
+  const declineRate = answered === 0 ? 0 : Math.round((byStatus.declined / answered) * 100);
+
+  // Facilities in the district that declined referrals, with how many they received in total.
+  const topDeclining = await query(
+    `SELECT f.id AS facility_id, f.name,
+            COUNT(*) FILTER (WHERE r.status = 'declined')::int AS declined,
+            COUNT(*)::int AS received
+     FROM referrals r
+     JOIN facilities f ON f.id = r.receiving_facility_id
+     WHERE f.district_id = $1
+     GROUP BY f.id, f.name
+     HAVING COUNT(*) FILTER (WHERE r.status = 'declined') > 0
+     ORDER BY declined DESC, f.id`,
+    [districtId]
+  );
+
   const topReferring = await topFacilities('referring_facility_id', districtId);
   const topReceiving = await topFacilities('receiving_facility_id', districtId);
 
@@ -74,9 +92,10 @@ router.get('/district/:id', requireAuth, requireRole('district_admin'), asyncHan
 
   res.status(200).json({
     district_id: districtId,
-    referrals: { total, by_status: byStatus },
+    referrals: { total, by_status: byStatus, decline_rate: declineRate },
     top_referring: topReferring.rows,
     top_receiving: topReceiving.rows,
+    top_declining: topDeclining.rows,
     resource_gaps: gaps.rows,
   });
 }));
