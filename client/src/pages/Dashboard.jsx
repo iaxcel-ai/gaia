@@ -46,21 +46,32 @@ export default function Dashboard() {
     </>
   );
 
+  const welcome = (
+    <section className="welcome">
+      <h1>Hello{user.username ? `, ${user.username}` : ' there'}</h1>
+      <p>See what each facility has available, and refer patients where there is capacity.</p>
+    </section>
+  );
+
   if (selectedFacilityId == null) {
     return (
       <div>
+        {welcome}
         <nav className="links">{adminLinks}</nav>
-        <p>Select a facility to get started.</p>
+        <p className="empty">Select a facility to get started.</p>
       </div>
     );
   }
 
   return (
     <div>
+      {welcome}
       <nav className="links">
         <Link to="/referrals">Referrals</Link>
         {adminLinks}
       </nav>
+
+      <h2>Resources</h2>
       <label htmlFor="facility-select">Facility</label>
       <select
         id="facility-select"
@@ -71,14 +82,6 @@ export default function Dashboard() {
           <option key={f.id} value={f.id}>{f.name}</option>
         ))}
       </select>
-
-      <ul className="rows">
-        {facilities.filter((f) => f.id !== user.facility_id).map((f) => (
-          <li key={f.id}>
-            {f.name} <Link to={`/referrals/new/${f.id}`}>Refer patient here</Link>
-          </li>
-        ))}
-      </ul>
 
       {error && <p role="alert">{error}</p>}
 
@@ -93,6 +96,7 @@ export default function Dashboard() {
 
       {selectedFacilityId === user.facility_id && (
         <form onSubmit={handleSubmit}>
+          <h2>Update your facility</h2>
           <label htmlFor="update-type">Type</label>
           <select id="update-type" value={updateType} onChange={(e) => setUpdateType(e.target.value)}>
             {RESOURCE_TYPES.map((t) => (
@@ -109,6 +113,15 @@ export default function Dashboard() {
           <button type="submit">Update</button>
         </form>
       )}
+
+      <h2>Refer a patient</h2>
+      <ul className="rows">
+        {facilities.filter((f) => f.id !== user.facility_id).map((f) => (
+          <li key={f.id}>
+            {f.name} <Link to={`/referrals/new/${f.id}`}>Refer patient here</Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

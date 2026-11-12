@@ -1,16 +1,40 @@
-/* Gaia styles. One file, plain CSS, system fonts (no downloads on slow connections). */
+/* Gaia styles. One file, plain CSS, system fonts (no downloads on slow connections).
+   Colours follow the project's visual design direction: forest green, sage,
+   turquoise accent, warm white background, soft green cards, deep charcoal text. */
 
 :root {
-  --ink: #16222b;
-  --muted: #5a6872;
-  --page: #edf1f0;
-  --surface: #ffffff;
-  --brand: #0b5c56;
-  --brand-tint: #dcebe9;
-  --warn: #8a4b00;
-  --warn-tint: #fdecc8;
-  --danger: #a3201a;
-  --danger-tint: #fbe3e1;
+  --bg: #f7faf6;
+  --card: #eaf4ec;
+  --field: #ffffff;
+  --text: #20332b;
+  --muted: #4c6157;
+  --border: #9db3a6;
+  --primary: #246b4b;
+  --on-primary: #ffffff;
+  --emerald: #2a8560;
+  --secondary: #8ebf9d;
+  --accent: #42bfa5;
+  --warn: #7a4a00;
+  --warn-tint: #fbe9c4;
+  --danger: #9c241d;
+  --danger-tint: #fae1df;
+}
+
+/* Dark theme: same roles, values swapped so contrast stays strong. */
+:root[data-theme='dark'] {
+  --bg: #111e18;
+  --card: #1b2e26;
+  --field: #111e18;
+  --text: #e6f0e9;
+  --muted: #a9bdb1;
+  --border: #55705f;
+  --primary: #8ebf9d;
+  --on-primary: #10231a;
+  --emerald: #246b4b;
+  --warn: #f4cf8a;
+  --warn-tint: #4a3610;
+  --danger: #f3b0aa;
+  --danger-tint: #4d1f1c;
 }
 
 * {
@@ -19,8 +43,8 @@
 
 body {
   margin: 0;
-  background: var(--page);
-  color: var(--ink);
+  background: var(--bg);
+  color: var(--text);
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 1rem;
   line-height: 1.5;
@@ -35,50 +59,77 @@ main {
 h1 {
   font-size: 1.75rem;
   line-height: 1.2;
-  margin: 0 0 1rem;
+  margin: 0 0 0.75rem;
 }
 
 h2 {
-  font-size: 1.15rem;
-  margin: 2rem 0 0.5rem;
+  font-size: 1.2rem;
+  margin: 2rem 0 0.75rem;
 }
 
 a {
-  color: var(--brand);
+  color: var(--primary);
   font-weight: 600;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 /* Top bar shown on every page after login */
 .topbar {
-  background: var(--brand);
+  background: #246b4b;
   color: #ffffff;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
+  gap: 0.5rem 0.75rem;
+  padding: 0.6rem 1rem;
 }
 
 .topbar a {
   color: #ffffff;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   text-decoration: none;
-}
-
-.topbar span {
-  margin-left: auto;
+  margin-right: auto;
 }
 
 .topbar button {
   background: transparent;
+  color: #ffffff;
   border: 1px solid #ffffff;
 }
 
-/* Row of page links at the top of the dashboard */
+/* Welcome panel at the top of the dashboard */
+.welcome {
+  background: linear-gradient(120deg, #246b4b, var(--emerald));
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.welcome p {
+  margin: 0;
+}
+
+/* Row of page links on the dashboard */
 .links {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1.25rem;
-  margin-bottom: 1.25rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.links a {
+  background: var(--card);
+  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+  text-decoration: none;
+}
+
+.links a:hover {
+  background: var(--secondary);
+  color: #10231a;
 }
 
 /* Forms */
@@ -86,9 +137,14 @@ form {
   display: grid;
   gap: 0.4rem;
   max-width: 26rem;
-  background: var(--surface);
+  background: var(--card);
   padding: 1.25rem;
-  border-radius: 8px;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+form h2 {
+  margin-top: 0;
 }
 
 label {
@@ -100,11 +156,12 @@ label {
 input,
 select {
   font: inherit;
-  color: var(--ink);
-  background: var(--surface);
-  border: 1px solid #9aa7ae;
-  border-radius: 6px;
+  color: var(--text);
+  background: var(--field);
+  border: 1px solid var(--border);
+  border-radius: 8px;
   padding: 0.6rem 0.7rem;
+  min-height: 44px;
   width: 100%;
   max-width: 26rem;
 }
@@ -112,52 +169,110 @@ select {
 button {
   font: inherit;
   font-weight: 600;
-  color: #ffffff;
-  background: var(--brand);
+  color: var(--on-primary);
+  background: var(--primary);
   border: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.6rem 1rem;
+  min-height: 44px;
   cursor: pointer;
+  transition: filter 0.15s, transform 0.05s;
 }
 
-form button {
+button:hover {
+  filter: brightness(1.12);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+form > button {
   margin-top: 0.75rem;
 }
 
 input:focus-visible,
 select:focus-visible,
 button:focus-visible,
-a:focus-visible {
-  outline: 3px solid var(--warn);
+a:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* Error messages */
+/* Messages */
 [role='alert'] {
   background: var(--danger-tint);
   color: var(--danger);
   font-weight: 600;
   padding: 0.6rem 0.8rem;
-  border-radius: 6px;
+  border-radius: 8px;
+}
+
+.notice {
+  background: var(--field);
+  color: var(--primary);
+  font-weight: 600;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+}
+
+.empty {
+  background: var(--card);
+  color: var(--muted);
+  padding: 1rem;
+  border-radius: 12px;
 }
 
 /* Login page */
 .login {
-  margin: 4rem auto 0;
+  margin: 3rem auto 0;
+}
+
+.tagline {
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+}
+
+.password-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+details {
+  margin-top: 0.75rem;
+}
+
+summary {
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0;
+}
+
+details p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
 }
 
 /* Lists where each item is its own row: facilities, referrals */
 .rows {
   list-style: none;
   padding: 0;
-  margin: 1rem 0;
+  margin: 0 0 1.5rem;
   display: grid;
   gap: 0.5rem;
 }
 
 .rows li {
-  background: var(--surface);
-  border-radius: 8px;
+  background: var(--card);
+  border-radius: 12px;
   padding: 0.75rem 1rem;
   display: flex;
   flex-wrap: wrap;
@@ -170,10 +285,6 @@ a:focus-visible {
   margin-left: auto;
 }
 
-.rows button {
-  padding: 0.4rem 0.8rem;
-}
-
 /* Resource status cards on the dashboard */
 .resources {
   display: grid;
@@ -183,31 +294,35 @@ a:focus-visible {
 }
 
 .resource {
-  background: var(--surface);
-  border-radius: 8px;
+  background: var(--card);
+  border-radius: 12px;
   padding: 1rem;
   margin: 0;
   display: grid;
   gap: 0.25rem;
   color: var(--muted);
-  text-transform: capitalize;
+}
+
+.resource::first-letter {
+  text-transform: uppercase;
 }
 
 .resource .quantity {
-  color: var(--ink);
+  color: var(--text);
   font-size: 2.25rem;
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
-/* Small labels: referral status and the stale-data warning */
+/* Small labels: referral status and the stale-data warning.
+   Each one carries its meaning in words, colour only supports it. */
 .badge {
   font-size: 0.85rem;
   font-weight: 600;
   padding: 0.15rem 0.6rem;
   border-radius: 999px;
-  background: var(--page);
+  background: var(--field);
   color: var(--muted);
   justify-self: start;
 }
@@ -220,11 +335,17 @@ a:focus-visible {
 
 .badge-accepted,
 .badge-completed {
-  background: var(--brand-tint);
-  color: var(--brand);
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
 .badge-declined {
   background: var(--danger-tint);
   color: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
 }

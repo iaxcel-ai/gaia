@@ -29,6 +29,9 @@ export default function Referrals() {
     <div>
       <h1>Referrals</h1>
       {error && <p role="alert">{error}</p>}
+      {referrals.length === 0 && !error && (
+        <p className="empty">No referrals yet. To send one, pick a facility on the dashboard.</p>
+      )}
       <ul className="rows">
         {referrals.map((r) => (
           <li key={r.id}>

@@ -145,3 +145,9 @@ test('a new socket referral event triggers a list refresh', async () => {
 
   expect(await screen.findByText('P-2')).toBeInTheDocument();
 });
+
+test('an empty list explains what to do next', async () => {
+  getReferrals.mockResolvedValue([]);
+  renderWithAuth({ facility_id: 1 });
+  expect(await screen.findByText(/no referrals yet/i)).toBeInTheDocument();
+});
