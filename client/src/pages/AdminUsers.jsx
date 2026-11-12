@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { getFacilities } from '../api/facilities';
 import { createUser } from '../api/admin';
 
 const STAFF_ROLES = ['chw', 'nurse'];
 
 export default function AdminUsers() {
+  const { user } = useAuth();
   const [facilities, setFacilities] = useState([]);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -17,10 +19,18 @@ export default function AdminUsers() {
     getFacilities().then(setFacilities).catch((e) => setError(e.message));
   }, []);
 
+  // The server only accepts facilities in the admin's own district, so only offer those.
+  const own = facilities.find((f) => f.id === user.facility_id);
+  const districtFacilities = own ? facilities.filter((f) => f.district_id === own.district_id) : [];
+
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage(null);
     setError(null);
+    if (!facilityId) {
+      setError('Choose a facility');
+      return;
+    }
     try {
       const created = await createUser({ username, password, role, facility_id: Number(facilityId) });
       setMessage(`Account created for ${created.username}`);
@@ -47,7 +57,7 @@ export default function AdminUsers() {
       <label htmlFor="new-facility">Facility</label>
       <select id="new-facility" value={facilityId} onChange={(e) => setFacilityId(e.target.value)}>
         <option value="">Choose a facility</option>
-        {facilities.map((f) => (
+        {districtFacilities.map((f) => (
           <option key={f.id} value={f.id}>{f.name}</option>
         ))}
       </select>
