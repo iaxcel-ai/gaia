@@ -475,8 +475,72 @@ p.resource::first-letter,
   color: var(--danger);
 }
 
+/* Animations. Short and quiet: they show that something changed, nothing more. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* A page eases in when you open it */
+main > * {
+  animation: rise 0.25s ease-out;
+}
+
+/* A referral's details ease in when it is opened */
+details[open] > :not(summary) {
+  animation: rise 0.2s ease-out;
+}
+
+/* Messages fade in so they are noticed */
+[role='alert'],
+.notice,
+.empty {
+  animation: fade 0.3s ease-out;
+}
+
+/* Switching between light and dark is a soft change, not a flash */
+body,
+form,
+.panel,
+.resource,
+.rows,
+input,
+select {
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.topbar a,
+.topbar button,
+.rows li {
+  transition: background-color 0.15s;
+}
+
+/* The row under the pointer is picked out */
+.rows li:hover {
+  background: var(--field);
+}
+
+/* Cards lift slightly under the pointer */
+.resource {
+  transition: transform 0.15s, background-color 0.2s, color 0.2s;
+}
+
+.resource:hover {
+  transform: translateY(-2px);
+}
+
+/* People who ask their device for less motion get none */
 @media (prefers-reduced-motion: reduce) {
-  button {
-    transition: none;
+  * {
+    animation: none !important;
+    transition: none !important;
   }
 }
