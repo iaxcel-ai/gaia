@@ -27,6 +27,7 @@ export default function DistrictReports() {
     getFacilities()
       .then((facilities) => {
         const own = facilities.find((f) => f.id === user.facility_id);
+        if (!own) throw new Error('Your facility was not found');
         return getDistrictReport(own.district_id);
       })
       .then(setReport)

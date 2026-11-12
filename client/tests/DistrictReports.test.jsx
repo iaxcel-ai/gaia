@@ -65,3 +65,9 @@ test('an admin with no facility sees an explanation instead of a report', async 
   expect(await screen.findByText(/not assigned to a facility/i)).toBeInTheDocument();
   expect(getDistrictReport).not.toHaveBeenCalled();
 });
+
+test('shows a clear message when the admin facility is not in the facility list', async () => {
+  renderPage({ role: 'district_admin', facility_id: 99 });
+  expect(await screen.findByRole('alert')).toHaveTextContent('Your facility was not found');
+  expect(getDistrictReport).not.toHaveBeenCalled();
+});
