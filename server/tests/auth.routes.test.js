@@ -55,42 +55,68 @@ test('logout returns 204', async () => {
   expect(res.status).toBe(204);
 });
 
+// Password reset: an admin may only reset accounts in their own district.
+let resetAdminToken;
+let resetNurseToken;
+
+async function addResetFixtures() {
+  await query(`DELETE FROM users WHERE username LIKE 'reset-test-%'`);
+  const district = await query(`INSERT INTO districts (name) VALUES ('ResetTestDistrict') RETURNING id`);
+  const other = await query(`INSERT INTO districts (name) VALUES ('ResetOtherDistrict') RETURNING id`);
+  const facility = await query(
+    `INSERT INTO facilities (district_id, name, tier) VALUES ($1, 'Reset Facility', 'health_center') RETURNING id`,
+    [district.rows[0].id]
+  );
+  const otherFacility = await query(
+    `INSERT INTO facilities (district_id, name, tier) VALUES ($1, 'Reset Other Facility', 'health_center') RETURNING id`,
+    [other.rows[0].id]
+  );
+  const facilityId = facility.rows[0].id;
+  const hash = await bcrypt.hash('oldpass123', 10);
+  const users = await query(
+    `INSERT INTO users (username, password_hash, role, facility_id)
+     VALUES ('reset-test-admin', $1, 'district_admin', $2),
+            ('reset-test-nurse', $1, 'nurse', $2),
+            ('reset-test-elsewhere', $1, 'nurse', $3)
+     RETURNING id`,
+    [hash, facilityId, otherFacility.rows[0].id]
+  );
+  resetAdminToken = issueToken({ id: users.rows[0].id, username: 'reset-test-admin', role: 'district_admin', facility_id: facilityId });
+  resetNurseToken = issueToken({ id: users.rows[1].id, username: 'reset-test-nurse', role: 'nurse', facility_id: facilityId });
+}
+
+function resetPassword(token, body) {
+  return request(app).post('/auth/reset-password').set('Authorization', `Bearer ${token}`).send(body);
+}
+
 test('reset-password by a district_admin succeeds and the new password works', async () => {
-  const adminToken = issueToken({ id: 1, username: 'testadmin', role: 'district_admin', facility_id: null });
-  const res = await request(app).post('/auth/reset-password')
-    .set('Authorization', `Bearer ${adminToken}`)
-    .send({ username: 'testadmin', newPassword: 'newpass456' });
+  await addResetFixtures();
+  const res = await resetPassword(resetAdminToken, { username: 'reset-test-nurse', newPassword: 'newpass456' });
   expect(res.status).toBe(200);
 
-  const loginRes = await request(app).post('/auth/login').send({ username: 'testadmin', password: 'newpass456' });
+  const loginRes = await request(app).post('/auth/login').send({ username: 'reset-test-nurse', password: 'newpass456' });
   expect(loginRes.status).toBe(200);
+});
 
-  await query(
-    `UPDATE users SET password_hash = $1 WHERE username = 'testadmin'`,
-    [await bcrypt.hash('testpass123', 10)]
-  );
+test('reset-password for a user in another district returns 404 and leaves the password alone', async () => {
+  const res = await resetPassword(resetAdminToken, { username: 'reset-test-elsewhere', newPassword: 'hijacked123' });
+  expect(res.status).toBe(404);
+
+  const loginRes = await request(app).post('/auth/login').send({ username: 'reset-test-elsewhere', password: 'oldpass123' });
+  expect(loginRes.status).toBe(200);
 });
 
 test('reset-password by a non-admin is rejected with 403', async () => {
-  const nurseToken = issueToken({ id: 2, username: 'nurse1', role: 'nurse', facility_id: 1 });
-  const res = await request(app).post('/auth/reset-password')
-    .set('Authorization', `Bearer ${nurseToken}`)
-    .send({ username: 'testadmin', newPassword: 'x' });
+  const res = await resetPassword(resetNurseToken, { username: 'reset-test-nurse', newPassword: 'x' });
   expect(res.status).toBe(403);
 });
 
 test('reset-password without a newPassword returns 400', async () => {
-  const adminToken = issueToken({ id: 1, username: 'testadmin', role: 'district_admin', facility_id: null });
-  const res = await request(app).post('/auth/reset-password')
-    .set('Authorization', `Bearer ${adminToken}`)
-    .send({ username: 'testadmin' });
+  const res = await resetPassword(resetAdminToken, { username: 'reset-test-nurse' });
   expect(res.status).toBe(400);
 });
 
 test('reset-password for a username that does not exist returns 404', async () => {
-  const adminToken = issueToken({ id: 1, username: 'testadmin', role: 'district_admin', facility_id: null });
-  const res = await request(app).post('/auth/reset-password')
-    .set('Authorization', `Bearer ${adminToken}`)
-    .send({ username: 'nobody', newPassword: 'whatever123' });
+  const res = await resetPassword(resetAdminToken, { username: 'nobody', newPassword: 'whatever123' });
   expect(res.status).toBe(404);
 });

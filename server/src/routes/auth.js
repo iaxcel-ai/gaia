@@ -40,7 +40,16 @@ router.post('/reset-password', requireAuth, requireRole('district_admin'), async
   }
 
   const hash = await hashPassword(newPassword);
-  const result = await query('UPDATE users SET password_hash = $1 WHERE username = $2', [hash, username]);
+  // Only accounts at facilities in the admin's own district can be reset.
+  const result = await query(
+    `UPDATE users SET password_hash = $1
+     WHERE username = $2
+       AND facility_id IN (
+         SELECT id FROM facilities
+         WHERE district_id = (SELECT district_id FROM facilities WHERE id = $3)
+       )`,
+    [hash, username, req.user.facility_id]
+  );
   if (result.rowCount === 0) {
     return res.status(404).json({ error: 'User not found' });
   }
