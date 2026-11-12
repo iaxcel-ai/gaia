@@ -68,3 +68,8 @@ test('shows no count when nothing is waiting', async () => {
   await screen.findByRole('link', { name: 'Referrals' });
   expect(screen.queryByTitle('Referrals waiting for an answer')).not.toBeInTheDocument();
 });
+
+test('shows the Gaia logo next to the name', () => {
+  renderNav({ username: 'nurse1', role: 'nurse' });
+  expect(screen.getByRole('img', { name: 'Gaia logo' })).toBeInTheDocument();
+});

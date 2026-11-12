@@ -54,3 +54,10 @@ test('explains how to get an account and how to recover a forgotten password', (
   expect(screen.getByText('Need an account?')).toBeInTheDocument();
   expect(screen.getByText(/accounts are created by your district admin/i)).toBeInTheDocument();
 });
+
+test('shows the Gaia logo and what the app is for', () => {
+  renderLogin({ login: vi.fn() });
+  expect(screen.getByRole('img', { name: 'Gaia logo' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Gaia' })).toBeInTheDocument();
+  expect(screen.getByText('The right care, at the right facility.')).toBeInTheDocument();
+});

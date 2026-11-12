@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { getReferrals } from '../api/referrals';
 import ThemeToggle from './ThemeToggle';
+import Logo from './Logo';
 
 // Top bar shown on every page behind the login: page links, theme switch, log out.
 // The two admin pages are only listed for district admins.
@@ -35,7 +36,7 @@ export default function NavBar() {
 
   return (
     <header className="topbar">
-      <strong className="brand">Gaia</strong>
+      <strong className="brand"><Logo size={24} />Gaia</strong>
       <nav>
         <NavLink to="/dashboard"><HomeIcon className="icon" />Dashboard</NavLink>
         <NavLink to="/referrals">

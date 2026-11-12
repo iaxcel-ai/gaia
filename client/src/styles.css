@@ -104,8 +104,15 @@ a {
 }
 
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1.1rem;
   margin-right: 0.75rem;
+}
+
+.logo {
+  flex: none;
 }
 
 .topbar nav {
@@ -280,10 +287,83 @@ summary:focus-visible {
   color: var(--muted);
 }
 
-/* Login page: one small card in the middle of the screen */
+/* Login page: a green panel that introduces Gaia, joined to the login form.
+   Side by side on a wide screen, stacked on a phone. */
+.login-page {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  max-width: 46rem;
+  margin: 8vh auto 0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(32, 51, 43, 0.12);
+}
+
+.login-brand {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(150deg, #1d5a3f, #2a8560);
+  color: #ffffff;
+  padding: 2rem 1.75rem;
+}
+
+/* A large, faint leaf in the corner of the panel */
+.login-brand::after {
+  content: '';
+  position: absolute;
+  right: -3.5rem;
+  bottom: -4.5rem;
+  width: 15rem;
+  height: 15rem;
+  background: #ffffff;
+  opacity: 0.07;
+  border-radius: 0 60% 0 60%;
+  transform: rotate(-12deg);
+}
+
+.login-name {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.login-name h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.login-lead {
+  font-size: 1.15rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.login-brand ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.login-brand li {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+
+.login-brand .icon {
+  margin-top: 0.15rem;
+  color: #a8e6c9;
+}
+
 .login {
-  max-width: 20rem;
-  margin: 12vh auto 0;
+  border-radius: 0;
+  padding: 2rem 1.75rem;
+  align-content: center;
+}
+
+.login h2 {
+  font-size: 1.35rem;
+  margin-bottom: 0.15rem;
 }
 
 .password-row {
