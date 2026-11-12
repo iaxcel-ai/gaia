@@ -6,6 +6,7 @@ const { writeAudit } = require('../services/auditService');
 const { notify } = require('../services/notificationService');
 
 const RESOURCE_TYPES = ['bed', 'specialist', 'supply'];
+const DECLINE_REASONS = ['no_bed', 'no_specialist', 'no_supply', 'other'];
 
 const router = express.Router();
 
@@ -106,6 +107,12 @@ router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
     return res.status(400).json({ error: 'Invalid action' });
   }
 
+  // A decline must say why, so the district can see which shortages turn patients away.
+  const reason = action === 'decline' ? req.body.reason : null;
+  if (action === 'decline' && !DECLINE_REASONS.includes(reason)) {
+    return res.status(400).json({ error: 'A decline needs a reason: no_bed, no_specialist, no_supply or other' });
+  }
+
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
     return res.status(404).json({ error: 'Referral not found' });
@@ -125,8 +132,8 @@ router.patch('/:id', requireAuth, asyncHandler(async (req, res) => {
   }
 
   const updateResult = await query(
-    'UPDATE referrals SET status = $1 WHERE id = $2 AND status = $3 RETURNING *',
-    [rule.newStatus, referral.id, rule.requiredStatus]
+    'UPDATE referrals SET status = $1, decline_reason = $4 WHERE id = $2 AND status = $3 RETURNING *',
+    [rule.newStatus, referral.id, rule.requiredStatus, reason]
   );
   if (updateResult.rows.length === 0) {
     return res.status(409).json({ error: `Referral is not ${rule.requiredStatus}` });

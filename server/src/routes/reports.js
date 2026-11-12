@@ -74,6 +74,17 @@ router.get('/district/:id', requireAuth, requireRole('district_admin'), asyncHan
     [districtId]
   );
 
+  // Why referrals to this district's facilities were declined.
+  const reasons = await query(
+    `SELECT r.decline_reason AS reason, COUNT(*)::int AS count
+     FROM referrals r
+     JOIN facilities f ON f.id = r.receiving_facility_id
+     WHERE f.district_id = $1 AND r.status = 'declined' AND r.decline_reason IS NOT NULL
+     GROUP BY r.decline_reason
+     ORDER BY count DESC, r.decline_reason`,
+    [districtId]
+  );
+
   const topReferring = await topFacilities('referring_facility_id', districtId);
   const topReceiving = await topFacilities('receiving_facility_id', districtId);
 
@@ -96,6 +107,7 @@ router.get('/district/:id', requireAuth, requireRole('district_admin'), asyncHan
     top_referring: topReferring.rows,
     top_receiving: topReceiving.rows,
     top_declining: topDeclining.rows,
+    decline_reasons: reasons.rows,
     resource_gaps: gaps.rows,
   });
 }));

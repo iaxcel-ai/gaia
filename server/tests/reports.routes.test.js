@@ -146,6 +146,12 @@ test('facilities that declined referrals are listed with how many they received'
   ]);
 });
 
+test('declines are counted by reason', async () => {
+  await query(`UPDATE referrals SET decline_reason = 'no_bed' WHERE patient_ref = 'p3' AND receiving_facility_id = $1`, [facA]);
+  const res = await getReport(adminToken, districtId);
+  expect(res.body.decline_reasons).toEqual([{ reason: 'no_bed', count: 1 }]);
+});
+
 test('only recurring zero-quantity gaps from the last 30 days are listed', async () => {
   const res = await getReport(adminToken, districtId);
   expect(res.body.resource_gaps).toEqual([
@@ -173,6 +179,7 @@ test('a district with no activity returns zeros and empty lists', async () => {
     top_referring: [],
     top_receiving: [],
     top_declining: [],
+    decline_reasons: [],
     resource_gaps: [],
   });
 });

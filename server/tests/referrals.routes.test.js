@@ -149,6 +149,38 @@ test('PATCH /referrals/:id accept by the receiving facility succeeds', async () 
   expect(res.body.status).toBe('accepted');
 });
 
+test('PATCH /referrals/:id decline stores the reason', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-DECLINE', condition: 'x', resource_required: 'bed' });
+  const res = await request(app).patch(`/referrals/${created.body.id}`).set('Authorization', `Bearer ${tokenB}`)
+    .send({ action: 'decline', reason: 'no_bed' });
+  expect(res.status).toBe(200);
+  expect(res.body.status).toBe('declined');
+  expect(res.body.decline_reason).toBe('no_bed');
+});
+
+test('PATCH /referrals/:id decline without a valid reason is rejected with 400 and stays pending', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-NOREASON', condition: 'x', resource_required: 'bed' });
+  const missing = await request(app).patch(`/referrals/${created.body.id}`).set('Authorization', `Bearer ${tokenB}`)
+    .send({ action: 'decline' });
+  expect(missing.status).toBe(400);
+  const invalid = await request(app).patch(`/referrals/${created.body.id}`).set('Authorization', `Bearer ${tokenB}`)
+    .send({ action: 'decline', reason: 'too busy' });
+  expect(invalid.status).toBe(400);
+
+  const after = await request(app).get(`/referrals/${created.body.id}`).set('Authorization', `Bearer ${tokenB}`);
+  expect(after.body.status).toBe('pending');
+});
+
+test('PATCH /referrals/:id accept does not store a decline reason', async () => {
+  const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-ACCEPTED', condition: 'x', resource_required: 'bed' });
+  const res = await request(app).patch(`/referrals/${created.body.id}`).set('Authorization', `Bearer ${tokenB}`)
+    .send({ action: 'accept', reason: 'no_bed' });
+  expect(res.body.decline_reason).toBeNull();
+});
+
 test('PATCH /referrals/:id accept by the referring facility is rejected with 403', async () => {
   const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
     .send({ receiving_facility_id: facB, patient_ref: 'P-5', condition: 'x', resource_required: 'bed' });
