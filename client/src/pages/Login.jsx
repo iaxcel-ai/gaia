@@ -7,6 +7,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
 
   async function handleSubmit(e) {
@@ -23,6 +24,7 @@ export default function Login() {
   return (
     <form className="login" onSubmit={handleSubmit}>
       <h1>Gaia</h1>
+      <p className="tagline">Referrals and resources across your district.</p>
       <label htmlFor="username">Username</label>
       <input
         id="username"
@@ -30,14 +32,34 @@ export default function Login() {
         onChange={(e) => setUsername(e.target.value)}
       />
       <label htmlFor="password">Password</label>
-      <input
-        id="password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+      <div className="password-row">
+        <input
+          id="password"
+          type={showPassword ? 'text' : 'password'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button
+          type="button"
+          className="secondary"
+          aria-pressed={showPassword}
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? 'Hide' : 'Show'}
+        </button>
+      </div>
       <button type="submit">Log in</button>
       {error && <p role="alert">{error}</p>}
+
+      {/* Accounts and password resets go through the district admin (SRS: admin-assisted). */}
+      <details>
+        <summary>Forgot password?</summary>
+        <p>Your district admin can reset your password. Ask them to set a new one for your username.</p>
+      </details>
+      <details>
+        <summary>Need an account?</summary>
+        <p>Accounts are created by your district admin. Ask them to add you to your facility.</p>
+      </details>
     </form>
   );
 }

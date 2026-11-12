@@ -36,3 +36,21 @@ test('shows an error message when login fails', async () => {
   await userEvent.click(screen.getByRole('button', { name: /log in/i }));
   expect(await screen.findByText('Invalid credentials')).toBeInTheDocument();
 });
+
+test('the password is hidden by default and the Show button reveals it', async () => {
+  renderLogin({ login: vi.fn() });
+  const password = screen.getByLabelText(/password/i);
+  expect(password).toHaveAttribute('type', 'password');
+  await userEvent.click(screen.getByRole('button', { name: 'Show' }));
+  expect(password).toHaveAttribute('type', 'text');
+  await userEvent.click(screen.getByRole('button', { name: 'Hide' }));
+  expect(password).toHaveAttribute('type', 'password');
+});
+
+test('explains how to get an account and how to recover a forgotten password', () => {
+  renderLogin({ login: vi.fn() });
+  expect(screen.getByText('Forgot password?')).toBeInTheDocument();
+  expect(screen.getByText(/district admin can reset your password/i)).toBeInTheDocument();
+  expect(screen.getByText('Need an account?')).toBeInTheDocument();
+  expect(screen.getByText(/accounts are created by your district admin/i)).toBeInTheDocument();
+});
