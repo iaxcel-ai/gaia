@@ -19,3 +19,8 @@ export async function createUser(body) {
   });
   return handle(res);
 }
+
+export async function getStaff() {
+  const res = await fetch('/api/admin/users', { headers: authHeaders() });
+  return handle(res);
+}

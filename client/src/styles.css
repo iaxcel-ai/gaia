@@ -296,6 +296,32 @@ details p {
   color: var(--muted);
 }
 
+/* Staff table */
+.staff {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.4rem 0.75rem 0.4rem 0;
+}
+
+th {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+tbody tr {
+  border-top: 1px solid var(--bg);
+}
+
 /* Lists where each item is its own row: facilities, referrals */
 .rows {
   list-style: none;
