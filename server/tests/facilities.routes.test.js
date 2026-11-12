@@ -45,6 +45,14 @@ test('GET /facilities lists all facilities', async () => {
   expect(res.body.some((f) => f.id === facA)).toBe(true);
 });
 
+test('GET /facilities includes the type and sector of each facility', async () => {
+  await query(`UPDATE facilities SET sector = 'Remera' WHERE id = $1`, [facA]);
+  const res = await request(app).get('/facilities').set('Authorization', `Bearer ${token}`);
+  const facility = res.body.find((f) => f.id === facA);
+  expect(facility.sector).toBe('Remera');
+  expect(facility.tier).toBeDefined();
+});
+
 test('GET /facilities requires auth', async () => {
   const res = await request(app).get('/facilities');
   expect(res.status).toBe(401);

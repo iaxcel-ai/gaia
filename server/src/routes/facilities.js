@@ -14,7 +14,7 @@ function isValidFacilityId(id) {
 const router = express.Router();
 
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
-  const result = await query('SELECT id, name, tier, district_id FROM facilities ORDER BY id');
+  const result = await query('SELECT id, name, tier, sector, district_id FROM facilities ORDER BY id');
   res.status(200).json(result.rows);
 }));
 
