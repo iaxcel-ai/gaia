@@ -78,7 +78,7 @@ export default function Dashboard() {
             {RESOURCE_TYPES.map((t) => {
               const entry = status.find((s) => s.type === t);
               return entry
-                ? <ResourceCard key={t} type={entry.type} quantity={entry.quantity} stale={entry.stale} />
+                ? <ResourceCard key={t} type={entry.type} quantity={entry.quantity} stale={entry.stale} updatedAt={entry.updated_at} />
                 : <p key={t} className="resource">{t}: no data</p>;
             })}
           </div>
