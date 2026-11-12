@@ -43,7 +43,7 @@ export default function AdminUsers() {
   }
 
   return (
-    <>
+    <div className="columns">
     <form onSubmit={handleSubmit}>
       <h1>Create a staff account</h1>
       <label htmlFor="new-username">Username</label>
@@ -68,6 +68,6 @@ export default function AdminUsers() {
       {error && <p role="alert">{error}</p>}
     </form>
     <ResetPasswordForm />
-    </>
+    </div>
   );
 }

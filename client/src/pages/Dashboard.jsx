@@ -39,25 +39,17 @@ export default function Dashboard() {
     }
   }
 
-  const adminLinks = user.role === 'district_admin' && (
-    <>
-      <Link to="/reports">District report</Link>
-      <Link to="/admin/users">Staff accounts</Link>
-    </>
-  );
-
   const welcome = (
-    <section className="welcome">
+    <>
       <h1>Hello{user.username ? `, ${user.username}` : ' there'}</h1>
-      <p>See what each facility has available, and refer patients where there is capacity.</p>
-    </section>
+      <p className="tagline">See what each facility has available, and refer patients where there is capacity.</p>
+    </>
   );
 
   if (selectedFacilityId == null) {
     return (
       <div>
         {welcome}
-        <nav className="links">{adminLinks}</nav>
         <p className="empty">Select a facility to get started.</p>
       </div>
     );
@@ -66,62 +58,63 @@ export default function Dashboard() {
   return (
     <div>
       {welcome}
-      <nav className="links">
-        <Link to="/referrals">Referrals</Link>
-        {adminLinks}
-      </nav>
-
-      <h2>Resources</h2>
-      <label htmlFor="facility-select">Facility</label>
-      <select
-        id="facility-select"
-        value={selectedFacilityId}
-        onChange={(e) => setSelectedFacilityId(Number(e.target.value))}
-      >
-        {facilities.map((f) => (
-          <option key={f.id} value={f.id}>{f.name}</option>
-        ))}
-      </select>
-
-      {error && <p role="alert">{error}</p>}
-
-      <div className="resources">
-        {RESOURCE_TYPES.map((t) => {
-          const entry = status.find((s) => s.type === t);
-          return entry
-            ? <ResourceCard key={t} type={entry.type} quantity={entry.quantity} stale={entry.stale} />
-            : <p key={t} className="resource">{t}: no data</p>;
-        })}
-      </div>
-
-      {selectedFacilityId === user.facility_id && (
-        <form onSubmit={handleSubmit}>
-          <h2>Update your facility</h2>
-          <label htmlFor="update-type">Type</label>
-          <select id="update-type" value={updateType} onChange={(e) => setUpdateType(e.target.value)}>
-            {RESOURCE_TYPES.map((t) => (
-              <option key={t} value={t}>{t}</option>
+      <div className="columns">
+        <section>
+          <h2>Resources</h2>
+          <label htmlFor="facility-select">Facility</label>
+          <select
+            id="facility-select"
+            value={selectedFacilityId}
+            onChange={(e) => setSelectedFacilityId(Number(e.target.value))}
+          >
+            {facilities.map((f) => (
+              <option key={f.id} value={f.id}>{f.name}</option>
             ))}
           </select>
-          <label htmlFor="update-quantity">Quantity</label>
-          <input
-            id="update-quantity"
-            type="number"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-          />
-          <button type="submit">Update</button>
-        </form>
-      )}
 
-      <h2>Refer a patient</h2>
-      <ul className="rows">
-        {facilities.filter((f) => f.id !== user.facility_id).map((f) => (
-          <li key={f.id}>
-            {f.name} <Link to={`/referrals/new/${f.id}`}>Refer patient here</Link>
-          </li>
-        ))}
-      </ul>
+          {error && <p role="alert">{error}</p>}
+
+          <div className="resources">
+            {RESOURCE_TYPES.map((t) => {
+              const entry = status.find((s) => s.type === t);
+              return entry
+                ? <ResourceCard key={t} type={entry.type} quantity={entry.quantity} stale={entry.stale} />
+                : <p key={t} className="resource">{t}: no data</p>;
+            })}
+          </div>
+
+          {selectedFacilityId === user.facility_id && (
+            <form onSubmit={handleSubmit}>
+              <h2>Update your facility</h2>
+              <label htmlFor="update-type">Type</label>
+              <select id="update-type" value={updateType} onChange={(e) => setUpdateType(e.target.value)}>
+                {RESOURCE_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              <label htmlFor="update-quantity">Quantity</label>
+              <input
+                id="update-quantity"
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+              />
+              <button type="submit">Update</button>
+            </form>
+          )}
+        </section>
+
+        <section>
+          <h2>Refer a patient</h2>
+          <ul className="rows scroll">
+            {facilities.filter((f) => f.id !== user.facility_id).map((f) => (
+              <li key={f.id}>
+                {f.name} <Link to={`/referrals/new/${f.id}`}>Refer patient here</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
     </div>
   );
 }

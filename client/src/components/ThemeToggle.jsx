@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 
 const THEME_KEY = 'gaia_theme';
 
@@ -18,7 +19,11 @@ export default function ThemeToggle() {
     setTheme(next);
   }
 
+  // The button is icon-only, so the label is what screen readers and tooltips use.
+  const label = theme === 'dark' ? 'Light mode' : 'Dark mode';
   return (
-    <button onClick={toggle}>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</button>
+    <button onClick={toggle} aria-label={label} title={label}>
+      {theme === 'dark' ? <SunIcon className="icon" /> : <MoonIcon className="icon" />}
+    </button>
   );
 }

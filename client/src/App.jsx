@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import Login from './pages/Login';
@@ -7,19 +7,13 @@ import ReferralForm from './pages/ReferralForm';
 import Referrals from './pages/Referrals';
 import DistrictReports from './pages/DistrictReports';
 import AdminUsers from './pages/AdminUsers';
-import ThemeToggle from './components/ThemeToggle';
+import NavBar from './components/NavBar';
 
-// Top bar and page container shared by every page behind the login.
+// Navigation bar and page container shared by every page behind the login.
 function Layout({ children }) {
-  const { user, logout } = useAuth();
   return (
     <>
-      <header className="topbar">
-        <Link to="/dashboard">Gaia</Link>
-        <span>{user.username}</span>
-        <ThemeToggle />
-        <button onClick={logout}>Log out</button>
-      </header>
+      <NavBar />
       <main>{children}</main>
     </>
   );

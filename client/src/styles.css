@@ -11,8 +11,6 @@
   --border: #9db3a6;
   --primary: #246b4b;
   --on-primary: #ffffff;
-  --emerald: #2a8560;
-  --secondary: #8ebf9d;
   --accent: #42bfa5;
   --warn: #7a4a00;
   --warn-tint: #fbe9c4;
@@ -30,7 +28,6 @@
   --border: #55705f;
   --primary: #8ebf9d;
   --on-primary: #10231a;
-  --emerald: #246b4b;
   --warn: #f4cf8a;
   --warn-tint: #4a3610;
   --danger: #f3b0aa;
@@ -46,111 +43,148 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-size: 1rem;
-  line-height: 1.5;
+  font-size: 0.9375rem;
+  line-height: 1.45;
 }
 
 main {
-  max-width: 46rem;
+  max-width: 68rem;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 1rem;
 }
 
 h1 {
-  font-size: 1.75rem;
+  font-size: 1.35rem;
   line-height: 1.2;
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.25rem;
 }
 
 h2 {
-  font-size: 1.2rem;
-  margin: 2rem 0 0.75rem;
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+}
+
+p {
+  margin: 0 0 0.5rem;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding-left: 1.25rem;
 }
 
 a {
   color: var(--primary);
   font-weight: 600;
-  text-decoration-color: var(--accent);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
 }
 
-/* Top bar shown on every page after login */
+.icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+}
+
+.tagline {
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+/* Navigation bar shown on every page after login */
 .topbar {
   background: #246b4b;
   color: #ffffff;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 0.75rem;
-  padding: 0.6rem 1rem;
+  gap: 0.25rem 0.5rem;
+  padding: 0.4rem 1rem;
 }
 
-.topbar a {
-  color: #ffffff;
-  font-size: 1.3rem;
-  text-decoration: none;
+.brand {
+  font-size: 1.1rem;
+  margin-right: 0.75rem;
+}
+
+.topbar nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
   margin-right: auto;
 }
 
+.topbar a,
 .topbar button {
-  background: transparent;
-  color: #ffffff;
-  border: 1px solid #ffffff;
-}
-
-/* Welcome panel at the top of the dashboard */
-.welcome {
-  background: linear-gradient(120deg, #246b4b, var(--emerald));
-  color: #ffffff;
-  border-radius: 12px;
-  padding: 1.5rem 1.25rem;
-  margin-bottom: 1.25rem;
-}
-
-.welcome p {
-  margin: 0;
-}
-
-/* Row of page links on the dashboard */
-.links {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.links a {
-  background: var(--card);
-  border-radius: 999px;
-  padding: 0.55rem 1.1rem;
+  align-items: center;
+  gap: 0.4rem;
+  color: #ffffff;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  min-height: 2.25rem;
+  font-weight: 600;
   text-decoration: none;
 }
 
-.links a:hover {
-  background: var(--secondary);
-  color: #10231a;
+.topbar a:hover,
+.topbar button:hover {
+  background: rgba(255, 255, 255, 0.14);
+  filter: none;
+}
+
+/* The page you are on */
+.topbar a.active {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.who {
+  opacity: 0.85;
+  margin-right: 0.25rem;
+}
+
+/* On phones the page links take their own full-width row under the brand */
+@media (max-width: 40rem) {
+  .topbar nav {
+    order: 1;
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .brand {
+    margin-right: auto;
+  }
+}
+
+/* Side-by-side sections on wide screens, stacked on phones */
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.panel {
+  background: var(--card);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
 }
 
 /* Forms */
 form {
   display: grid;
-  gap: 0.4rem;
-  max-width: 26rem;
+  gap: 0.3rem;
   background: var(--card);
-  padding: 1.25rem;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-}
-
-form h2 {
-  margin-top: 0;
+  padding: 0.85rem 1rem 1rem;
+  border-radius: 8px;
 }
 
 label {
   display: block;
   font-weight: 600;
-  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  margin-top: 0.35rem;
 }
 
 input,
@@ -159,22 +193,25 @@ select {
   color: var(--text);
   background: var(--field);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.6rem 0.7rem;
-  min-height: 44px;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  min-height: 2.4rem;
   width: 100%;
-  max-width: 26rem;
 }
 
 button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   font: inherit;
   font-weight: 600;
   color: var(--on-primary);
   background: var(--primary);
   border: 0;
-  border-radius: 8px;
-  padding: 0.6rem 1rem;
-  min-height: 44px;
+  border-radius: 6px;
+  padding: 0.4rem 0.9rem;
+  min-height: 2.4rem;
   cursor: pointer;
   transition: filter 0.15s, transform 0.05s;
 }
@@ -190,11 +227,11 @@ button:active {
 button.secondary {
   background: transparent;
   color: var(--primary);
-  border: 1px solid var(--primary);
+  border: 1px solid var(--border);
 }
 
 form > button {
-  margin-top: 0.75rem;
+  margin-top: 0.6rem;
 }
 
 input:focus-visible,
@@ -202,58 +239,56 @@ select:focus-visible,
 button:focus-visible,
 a:focus-visible,
 summary:focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 /* Messages */
+[role='alert'],
+.notice,
+.empty {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin: 0.5rem 0;
+}
+
 [role='alert'] {
   background: var(--danger-tint);
   color: var(--danger);
   font-weight: 600;
-  padding: 0.6rem 0.8rem;
-  border-radius: 8px;
 }
 
 .notice {
   background: var(--field);
   color: var(--primary);
   font-weight: 600;
-  padding: 0.6rem 0.8rem;
-  border-radius: 8px;
 }
 
 .empty {
   background: var(--card);
   color: var(--muted);
-  padding: 1rem;
-  border-radius: 12px;
 }
 
-/* Login page */
+/* Login page: one small card in the middle of the screen */
 .login {
-  margin: 3rem auto 0;
-}
-
-.tagline {
-  color: var(--muted);
-  margin: 0 0 0.5rem;
+  max-width: 20rem;
+  margin: 12vh auto 0;
 }
 
 .password-row {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 details {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
 }
 
 summary {
   color: var(--primary);
   font-weight: 600;
   cursor: pointer;
-  padding: 0.25rem 0;
 }
 
 details p {
@@ -265,19 +300,21 @@ details p {
 .rows {
   list-style: none;
   padding: 0;
-  margin: 0 0 1.5rem;
-  display: grid;
-  gap: 0.5rem;
+  margin: 0;
+  background: var(--card);
+  border-radius: 8px;
 }
 
 .rows li {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
+  padding: 0.45rem 0.85rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 0.75rem;
+  gap: 0.4rem 0.6rem;
+}
+
+.rows li + li {
+  border-top: 1px solid var(--bg);
 }
 
 .rows li a,
@@ -285,42 +322,60 @@ details p {
   margin-left: auto;
 }
 
+.rows button {
+  min-height: 2rem;
+  padding: 0.25rem 0.7rem;
+}
+
+/* A long list scrolls inside its own box instead of stretching the page */
+.scroll {
+  max-height: 26rem;
+  overflow-y: auto;
+}
+
 /* Resource status cards on the dashboard */
 .resources {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: 0.75rem;
-  margin: 1rem 0 1.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin: 0.75rem 0;
 }
 
 .resource {
   background: var(--card);
-  border-radius: 12px;
-  padding: 1rem;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
   margin: 0;
   display: grid;
-  gap: 0.25rem;
+  gap: 0.15rem;
   color: var(--muted);
+  font-size: 0.875rem;
 }
 
-.resource::first-letter {
+/* "bed" is shown as "Bed" */
+p.resource {
+  display: block;
+}
+
+p.resource::first-letter,
+.resource span:first-child::first-letter {
   text-transform: uppercase;
 }
 
 .resource .quantity {
   color: var(--text);
-  font-size: 2.25rem;
+  font-size: 1.6rem;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
 
 /* Small labels: referral status and the stale-data warning.
    Each one carries its meaning in words, colour only supports it. */
 .badge {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  padding: 0.15rem 0.6rem;
+  padding: 0.1rem 0.5rem;
   border-radius: 999px;
   background: var(--field);
   color: var(--muted);

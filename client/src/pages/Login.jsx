@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -42,10 +43,11 @@ export default function Login() {
         <button
           type="button"
           className="secondary"
-          aria-pressed={showPassword}
+          aria-label={showPassword ? 'Hide' : 'Show'}
+          title={showPassword ? 'Hide password' : 'Show password'}
           onClick={() => setShowPassword(!showPassword)}
         >
-          {showPassword ? 'Hide' : 'Show'}
+          {showPassword ? <EyeSlashIcon className="icon" /> : <EyeIcon className="icon" />}
         </button>
       </div>
       <button type="submit">Log in</button>

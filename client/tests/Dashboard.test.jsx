@@ -96,19 +96,3 @@ test('a resource type that was never reported shows as no data', async () => {
   await screen.findByText('5');
   expect(screen.getByText('specialist: no data')).toBeInTheDocument();
 });
-
-test('a district admin sees links to reports and staff accounts', async () => {
-  getFacilities.mockResolvedValue([{ id: 1, name: 'Own Facility' }]);
-  getFacilityStatus.mockResolvedValue({ facility_id: 1, status: [] });
-  renderWithAuth({ facility_id: 1, role: 'district_admin' });
-  expect(await screen.findByRole('link', { name: 'District report' })).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: 'Staff accounts' })).toBeInTheDocument();
-});
-
-test('a nurse does not see the admin links', async () => {
-  getFacilities.mockResolvedValue([{ id: 1, name: 'Own Facility' }]);
-  getFacilityStatus.mockResolvedValue({ facility_id: 1, status: [] });
-  renderWithAuth({ facility_id: 1, role: 'nurse' });
-  await screen.findByRole('link', { name: 'Referrals' });
-  expect(screen.queryByRole('link', { name: 'District report' })).not.toBeInTheDocument();
-});
