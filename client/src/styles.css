@@ -546,6 +546,20 @@ dd {
   gap: 0.5rem;
 }
 
+.actions {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.actions label {
+  width: 100%;
+  margin: 0;
+}
+
+.actions select {
+  width: auto;
+}
+
 .rows .actions button {
   margin-left: 0;
 }

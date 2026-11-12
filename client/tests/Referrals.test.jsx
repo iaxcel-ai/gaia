@@ -195,3 +195,42 @@ test('clicking a referral opens it, and clicking again closes it', async () => {
   await userEvent.click(row);
   expect(row).toHaveAttribute('aria-expanded', 'false');
 });
+
+test('declining asks for a reason and sends it', async () => {
+  getReferrals.mockResolvedValue([
+    { id: 1, patient_ref: 'P-1', status: 'pending', referring_facility_id: 1, receiving_facility_id: 2 },
+  ]);
+  respondToReferral.mockResolvedValue({ id: 1, status: 'declined' });
+  renderWithAuth({ facility_id: 2 });
+  await screen.findByText('P-1');
+  await userEvent.click(screen.getByRole('button', { name: 'Decline' }));
+  expect(respondToReferral).not.toHaveBeenCalled();
+
+  await userEvent.selectOptions(screen.getByLabelText('Why are you declining?'), 'No specialist available');
+  await userEvent.click(screen.getByRole('button', { name: 'Confirm decline' }));
+  expect(respondToReferral).toHaveBeenCalledWith(1, 'decline', 'no_specialist');
+});
+
+test('backing out of a decline sends nothing', async () => {
+  getReferrals.mockResolvedValue([
+    { id: 1, patient_ref: 'P-1', status: 'pending', referring_facility_id: 1, receiving_facility_id: 2 },
+  ]);
+  renderWithAuth({ facility_id: 2 });
+  await screen.findByText('P-1');
+  await userEvent.click(screen.getByRole('button', { name: 'Decline' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Back' }));
+  expect(respondToReferral).not.toHaveBeenCalled();
+  expect(screen.getByRole('button', { name: 'Accept' })).toBeInTheDocument();
+});
+
+test('a declined referral shows why it was declined', async () => {
+  getReferrals.mockResolvedValue([
+    {
+      id: 1, patient_ref: 'P-1', status: 'declined', decline_reason: 'no_bed',
+      referring_facility_id: 1, receiving_facility_id: 2,
+    },
+  ]);
+  renderWithAuth({ facility_id: 1 });
+  await screen.findByText('P-1');
+  expect(screen.getByText('No bed available')).toBeInTheDocument();
+});

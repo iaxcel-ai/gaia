@@ -30,11 +30,11 @@ export async function getReferral(id) {
   return handle(res);
 }
 
-export async function respondToReferral(id, action) {
+export async function respondToReferral(id, action, reason) {
   const res = await fetch(`/api/referrals/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify({ action }),
+    body: JSON.stringify({ action, reason }),
   });
   return handle(res);
 }

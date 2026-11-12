@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getFacilities } from '../api/facilities';
 import { getDistrictReport } from '../api/reports';
+import { DECLINE_REASONS } from '../declineReasons';
 
 function FacilityRanking({ rows }) {
   if (rows.length === 0) {
@@ -84,6 +85,19 @@ export default function DistrictReports() {
                 <li key={row.facility_id}>
                   {row.name}: declined {row.declined} of {row.received} received
                 </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="panel">
+          <h2>Why referrals were declined</h2>
+          {report.decline_reasons.length === 0 ? (
+            <p>No reasons recorded yet.</p>
+          ) : (
+            <ul>
+              {report.decline_reasons.map((row) => (
+                <li key={row.reason}>{DECLINE_REASONS[row.reason]}: {row.count}</li>
               ))}
             </ul>
           )}
