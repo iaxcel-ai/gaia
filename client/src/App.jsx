@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ReferralForm from './pages/ReferralForm';
 import Referrals from './pages/Referrals';
+import DistrictReports from './pages/DistrictReports';
+import AdminUsers from './pages/AdminUsers';
 
 function RequireUser({ children }) {
   const { user } = useAuth();
@@ -44,6 +46,22 @@ export default function App() {
               element={
                 <RequireUser>
                   <Referrals />
+                </RequireUser>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <RequireUser>
+                  <DistrictReports />
+                </RequireUser>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <RequireUser>
+                  <AdminUsers />
                 </RequireUser>
               }
             />

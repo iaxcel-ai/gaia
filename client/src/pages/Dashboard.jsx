@@ -39,13 +39,26 @@ export default function Dashboard() {
     }
   }
 
+  const adminLinks = user.role === 'district_admin' && (
+    <>
+      <Link to="/reports">District report</Link>
+      <Link to="/admin/users">Staff accounts</Link>
+    </>
+  );
+
   if (selectedFacilityId == null) {
-    return <p>Select a facility to get started.</p>;
+    return (
+      <div>
+        {adminLinks}
+        <p>Select a facility to get started.</p>
+      </div>
+    );
   }
 
   return (
     <div>
       <Link to="/referrals">Referrals</Link>
+      {adminLinks}
       <label htmlFor="facility-select">Facility</label>
       <select
         id="facility-select"
