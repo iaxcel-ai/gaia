@@ -10,7 +10,8 @@ vi.mock('../src/api/reports');
 
 const EMPTY_REPORT = {
   district_id: 7,
-  referrals: { total: 0, by_status: { pending: 0, accepted: 0, declined: 0, completed: 0, cancelled: 0 } },
+  referrals: { total: 0, by_status: { pending: 0, accepted: 0, declined: 0, completed: 0, cancelled: 0 }, decline_rate: 0 },
+  top_declining: [],
   top_referring: [],
   top_receiving: [],
   resource_gaps: [],
@@ -32,7 +33,8 @@ beforeEach(() => {
 test('loads the report for the district of the admin facility and shows its contents', async () => {
   getDistrictReport.mockResolvedValue({
     district_id: 7,
-    referrals: { total: 4, by_status: { pending: 1, accepted: 1, declined: 2, completed: 0, cancelled: 0 } },
+    referrals: { total: 4, by_status: { pending: 1, accepted: 1, declined: 2, completed: 0, cancelled: 0 }, decline_rate: 67 },
+    top_declining: [{ facility_id: 2, name: 'Facility Two', declined: 2, received: 3 }],
     top_referring: [{ facility_id: 1, name: 'Facility One', count: 3 }],
     top_receiving: [{ facility_id: 2, name: 'Facility Two', count: 2 }],
     resource_gaps: [{ facility_id: 1, name: 'Facility One', type: 'bed', zero_count: 5 }],
@@ -44,6 +46,8 @@ test('loads the report for the district of the admin facility and shows its cont
   expect(screen.getByText('Facility One: 3')).toBeInTheDocument();
   expect(screen.getByText('Facility Two: 2')).toBeInTheDocument();
   expect(screen.getByText('Facility One, bed: 5 times at zero')).toBeInTheDocument();
+  expect(screen.getByText('Declined: 67% of answered referrals')).toBeInTheDocument();
+  expect(screen.getByText('Facility Two: declined 2 of 3 received')).toBeInTheDocument();
 });
 
 test('an empty report shows empty-state messages', async () => {
@@ -51,6 +55,7 @@ test('an empty report shows empty-state messages', async () => {
   renderPage({ role: 'district_admin', facility_id: 1 });
   expect(await screen.findByText('Total referrals: 0')).toBeInTheDocument();
   expect(screen.getByText('No recurring resource gaps.')).toBeInTheDocument();
+  expect(screen.getByText('No declined referrals.')).toBeInTheDocument();
   expect(screen.getAllByText('No referrals yet.')).toHaveLength(2);
 });
 

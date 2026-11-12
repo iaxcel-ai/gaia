@@ -51,6 +51,7 @@ export default function DistrictReports() {
         <section className="panel">
           <h2>Referrals</h2>
           <p>Total referrals: {report.referrals.total}</p>
+          <p>Declined: {report.referrals.decline_rate}% of answered referrals</p>
           <ul>
             {Object.entries(report.referrals.by_status).map(([status, count]) => (
               <li key={status}>{status}: {count}</li>
@@ -67,6 +68,21 @@ export default function DistrictReports() {
               {report.resource_gaps.map((gap) => (
                 <li key={`${gap.facility_id}-${gap.type}`}>
                   {gap.name}, {gap.type}: {gap.zero_count} times at zero
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="panel">
+          <h2>Facilities declining referrals</h2>
+          {report.top_declining.length === 0 ? (
+            <p>No declined referrals.</p>
+          ) : (
+            <ul>
+              {report.top_declining.map((row) => (
+                <li key={row.facility_id}>
+                  {row.name}: declined {row.declined} of {row.received} received
                 </li>
               ))}
             </ul>
