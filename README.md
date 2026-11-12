@@ -25,7 +25,7 @@ Not yet built: Kinyarwanda translations (accurate clinical translation needs a n
    node scripts/seed.js
    npm run dev
    ```
-   The seed script prints a dev admin username and password you can use to log in.
+   The seed script loads the Gasabo district with its healthcare facilities and prints a dev admin username and password you can use to log in. It is safe to run again.
 4. Run the client:
    ```
    cd client
@@ -40,6 +40,8 @@ Not yet built: Kinyarwanda translations (accurate clinical translation needs a n
 cd server && npm test
 cd client && npm test
 ```
+
+The backend tests use their own database, `gaia_test`, so they never add test rows to the dev database. `npm test` creates it and applies the migrations automatically; Postgres only needs to be running.
 
 ## Tech stack
 
