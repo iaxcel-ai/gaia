@@ -24,3 +24,12 @@ export async function getStaff() {
   const res = await fetch('/api/admin/users', { headers: authHeaders() });
   return handle(res);
 }
+
+export async function setStaffActive(id, active) {
+  const res = await fetch(`/api/admin/users/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ active }),
+  });
+  return handle(res);
+}

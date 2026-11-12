@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getFacilities } from '../api/facilities';
-import { createUser, getStaff } from '../api/admin';
+import { createUser, getStaff, setStaffActive } from '../api/admin';
 import PasswordInput from '../components/PasswordInput';
 import ResetPasswordForm from '../components/ResetPasswordForm';
 
@@ -50,6 +50,18 @@ export default function AdminUsers() {
     }
   }
 
+  // Deactivating keeps the account and its history but stops it logging in.
+  async function changeActive(staffMember, active) {
+    setMessage(null);
+    setError(null);
+    try {
+      await setStaffActive(staffMember.id, active);
+      await loadStaff();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   return (
     <div>
       <h1>Staff accounts</h1>
@@ -92,6 +104,8 @@ export default function AdminUsers() {
                 <th>Username</th>
                 <th>Role</th>
                 <th>Facility</th>
+                <th>Status</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -100,6 +114,15 @@ export default function AdminUsers() {
                   <td>{s.username}</td>
                   <td>{s.role}</td>
                   <td>{s.facility_name}</td>
+                  <td>{s.active ? 'Active' : 'Deactivated'}</td>
+                  <td>
+                    {/* Admin accounts, including your own, cannot be deactivated here. */}
+                    {s.role !== 'district_admin' && (
+                      <button className="secondary" onClick={() => changeActive(s, !s.active)}>
+                        {s.active ? 'Deactivate' : 'Reactivate'}
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

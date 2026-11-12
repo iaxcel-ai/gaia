@@ -4,7 +4,7 @@ import { vi, test, expect, beforeEach } from 'vitest';
 import { AuthContext } from '../src/context/AuthContext';
 import AdminUsers from '../src/pages/AdminUsers';
 import { getFacilities } from '../src/api/facilities';
-import { createUser, getStaff } from '../src/api/admin';
+import { createUser, getStaff, setStaffActive } from '../src/api/admin';
 
 vi.mock('../src/api/facilities');
 vi.mock('../src/api/admin');
@@ -26,8 +26,9 @@ beforeEach(() => {
     { id: 3, name: 'Other District Facility', district_id: 8 },
   ]);
   getStaff.mockResolvedValue([
-    { id: 5, username: 'nurse1', role: 'nurse', facility_id: 1, facility_name: 'Facility One' },
-    { id: 6, username: 'chw1', role: 'chw', facility_id: 2, facility_name: 'Facility Two' },
+    { id: 4, username: 'boss', role: 'district_admin', facility_id: 1, facility_name: 'Facility One', active: true },
+    { id: 5, username: 'nurse1', role: 'nurse', facility_id: 1, facility_name: 'Facility One', active: true },
+    { id: 6, username: 'chw1', role: 'chw', facility_id: 2, facility_name: 'Facility Two', active: false },
   ]);
 });
 
@@ -81,7 +82,7 @@ test('the page also offers the password reset form', async () => {
 
 test('lists the registered staff with a count', async () => {
   renderPage();
-  expect(await screen.findByText('Registered staff (2)')).toBeInTheDocument();
+  expect(await screen.findByText('Registered staff (3)')).toBeInTheDocument();
   expect(screen.getByRole('cell', { name: 'nurse1' })).toBeInTheDocument();
   expect(screen.getByRole('cell', { name: 'Facility Two' })).toBeInTheDocument();
 });
@@ -89,7 +90,7 @@ test('lists the registered staff with a count', async () => {
 test('the staff list is reloaded after an account is created', async () => {
   createUser.mockResolvedValue({ id: 9, username: 'newnurse', role: 'nurse', facility_id: 2 });
   renderPage();
-  await screen.findByText('Registered staff (2)');
+  await screen.findByText('Registered staff (3)');
   await fillAndSubmit();
   await screen.findByText(/account created for newnurse/i);
   expect(getStaff).toHaveBeenCalledTimes(2);
@@ -101,4 +102,29 @@ test('the new account password can be shown and hidden', async () => {
   expect(password).toHaveAttribute('type', 'password');
   await userEvent.click(screen.getAllByRole('button', { name: 'Show' })[0]);
   expect(password).toHaveAttribute('type', 'text');
+});
+
+test('an active staff member can be deactivated, and the list is reloaded', async () => {
+  setStaffActive.mockResolvedValue({ id: 5, username: 'nurse1', active: false });
+  renderPage();
+  await screen.findByText('Registered staff (3)');
+  await userEvent.click(screen.getByRole('button', { name: 'Deactivate' }));
+  expect(setStaffActive).toHaveBeenCalledWith(5, false);
+  expect(getStaff).toHaveBeenCalledTimes(2);
+});
+
+test('a deactivated staff member is marked and can be reactivated', async () => {
+  setStaffActive.mockResolvedValue({ id: 6, username: 'chw1', active: true });
+  renderPage();
+  await screen.findByText('Registered staff (3)');
+  expect(screen.getByRole('cell', { name: 'Deactivated' })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: 'Reactivate' }));
+  expect(setStaffActive).toHaveBeenCalledWith(6, true);
+});
+
+test('admin accounts have no deactivate button', async () => {
+  renderPage();
+  await screen.findByText('Registered staff (3)');
+  // One Deactivate (nurse1) and one Reactivate (chw1); none for the admin row.
+  expect(screen.getAllByRole('button', { name: /^(Deactivate|Reactivate)$/ })).toHaveLength(2);
 });
