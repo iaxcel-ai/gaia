@@ -9,6 +9,9 @@ let adminToken;
 let nurseToken;
 
 beforeAll(async () => {
+  await query(
+    `DELETE FROM audit_log WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'admin-test-%')`
+  );
   await query(`DELETE FROM users WHERE username LIKE 'admin-test-%'`);
 
   const district = await query(`INSERT INTO districts (name) VALUES ('AdminTestDistrict') RETURNING id`);
