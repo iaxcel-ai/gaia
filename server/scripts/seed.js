@@ -16,12 +16,16 @@ function seedAdmin(passwordHash, facilityId) {
 }
 
 async function seed() {
-  const existing = await query('SELECT 1 FROM districts LIMIT 1');
+  // Look for the seeded district by name: tests add their own districts to this database.
+  const existing = await query(`SELECT id FROM districts WHERE name = 'Gasabo' ORDER BY id LIMIT 1`);
   if (existing.rows.length > 0) {
     console.log('Seed data already present, skipping district/facility seeding.');
     const adminHash = await bcrypt.hash(DEV_ADMIN_PASSWORD, 10);
-    const firstFacility = await query('SELECT id FROM facilities ORDER BY id LIMIT 1');
-    await seedAdmin(adminHash, firstFacility.rows[0].id);
+    const firstFacility = await query(
+      'SELECT id FROM facilities WHERE district_id = $1 ORDER BY id LIMIT 1',
+      [existing.rows[0].id]
+    );
+    await seedAdmin(adminHash, firstFacility.rows.length > 0 ? firstFacility.rows[0].id : null);
     console.log('Seeded admin user: username=admin password=%s', DEV_ADMIN_PASSWORD);
     process.exit(0);
   }
