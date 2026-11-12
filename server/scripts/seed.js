@@ -4,17 +4,24 @@ const { query } = require('../src/db');
 
 const DEV_ADMIN_PASSWORD = 'admin_dev_password';
 
+// The admin belongs to a facility so that district reports know which district is theirs.
+// An admin seeded before this was added gets the facility filled in.
+function seedAdmin(passwordHash, facilityId) {
+  return query(
+    `INSERT INTO users (username, password_hash, role, facility_id)
+     VALUES ('admin', $1, 'district_admin', $2)
+     ON CONFLICT (username) DO UPDATE SET facility_id = COALESCE(users.facility_id, EXCLUDED.facility_id)`,
+    [passwordHash, facilityId]
+  );
+}
+
 async function seed() {
   const existing = await query('SELECT 1 FROM districts LIMIT 1');
   if (existing.rows.length > 0) {
     console.log('Seed data already present, skipping district/facility seeding.');
     const adminHash = await bcrypt.hash(DEV_ADMIN_PASSWORD, 10);
-    await query(
-      `INSERT INTO users (username, password_hash, role)
-       VALUES ('admin', $1, 'district_admin')
-       ON CONFLICT (username) DO NOTHING`,
-      [adminHash]
-    );
+    const firstFacility = await query('SELECT id FROM facilities ORDER BY id LIMIT 1');
+    await seedAdmin(adminHash, firstFacility.rows[0].id);
     console.log('Seeded admin user: username=admin password=%s', DEV_ADMIN_PASSWORD);
     process.exit(0);
   }
@@ -34,12 +41,7 @@ async function seed() {
   );
 
   const passwordHash = await bcrypt.hash(DEV_ADMIN_PASSWORD, 10);
-  await query(
-    `INSERT INTO users (username, password_hash, role)
-     VALUES ('admin', $1, 'district_admin')
-     ON CONFLICT (username) DO NOTHING`,
-    [passwordHash]
-  );
+  await seedAdmin(passwordHash, facilitiesResult.rows[0].id);
 
   console.log('Seeded district:', districtId);
   console.log('Seeded facilities:', facilitiesResult.rows.map((r) => r.id));
