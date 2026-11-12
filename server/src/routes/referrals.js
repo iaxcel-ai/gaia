@@ -51,9 +51,12 @@ router.get('/', requireAuth, asyncHandler(async (req, res) => {
   }
 
   const result = await query(
-    `SELECT * FROM referrals
-     WHERE referring_facility_id = $1 OR receiving_facility_id = $1
-     ORDER BY created_at DESC`,
+    `SELECT r.*, a.name AS referring_facility_name, b.name AS receiving_facility_name
+     FROM referrals r
+     JOIN facilities a ON a.id = r.referring_facility_id
+     JOIN facilities b ON b.id = r.receiving_facility_id
+     WHERE r.referring_facility_id = $1 OR r.receiving_facility_id = $1
+     ORDER BY r.created_at DESC`,
     [req.user.facility_id]
   );
   res.status(200).json(result.rows);

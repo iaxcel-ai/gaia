@@ -101,6 +101,15 @@ test('GET /referrals lists referrals where the user\'s facility is referring or 
   expect(res.body.length).toBeGreaterThan(0);
 });
 
+test('GET /referrals includes the names of both facilities', async () => {
+  await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
+    .send({ receiving_facility_id: facB, patient_ref: 'P-NAMES', condition: 'fever', resource_required: 'bed' });
+  const res = await request(app).get('/referrals').set('Authorization', `Bearer ${tokenA}`);
+  const referral = res.body.find((r) => r.patient_ref === 'P-NAMES');
+  expect(referral.referring_facility_name).toBe('Referral Facility A');
+  expect(referral.receiving_facility_name).toBe('Referral Facility B');
+});
+
 test('GET /referrals/:id is visible to the receiving facility', async () => {
   const created = await request(app).post('/referrals').set('Authorization', `Bearer ${tokenA}`)
     .send({ receiving_facility_id: facB, patient_ref: 'P-2', condition: 'x', resource_required: 'bed' });
