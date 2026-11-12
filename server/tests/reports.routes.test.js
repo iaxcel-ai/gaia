@@ -10,6 +10,7 @@ let facA;
 let facB;
 let adminToken;
 let nurseToken;
+let chwToken;
 let emptyAdminToken;
 
 async function addDistrict(name) {
@@ -53,6 +54,7 @@ beforeAll(async () => {
 
   adminToken = await addUser('report-test-admin', 'district_admin', facA);
   nurseToken = await addUser('report-test-nurse', 'nurse', facA);
+  chwToken = await addUser('report-test-chw', 'chw', facA);
   emptyAdminToken = await addUser('report-test-empty-admin', 'district_admin', facZ);
 
   const creator = await query(`SELECT id FROM users WHERE username = 'report-test-nurse'`);
@@ -90,6 +92,11 @@ afterAll(() => closePool());
 
 test('a nurse cannot read district reports', async () => {
   const res = await getReport(nurseToken, districtId);
+  expect(res.status).toBe(403);
+});
+
+test('a chw cannot read district reports', async () => {
+  const res = await getReport(chwToken, districtId);
   expect(res.status).toBe(403);
 });
 
