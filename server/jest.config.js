@@ -1,4 +1,4 @@
 module.exports = {
-  setupFiles: ['dotenv/config'],
+  setupFiles: ['./tests/setupEnv.js'],
   testEnvironment: 'node',
 };
