@@ -151,3 +151,34 @@ test('an empty list explains what to do next', async () => {
   renderWithAuth({ facility_id: 1 });
   expect(await screen.findByText(/no referrals yet/i)).toBeInTheDocument();
 });
+
+test('each referral can be opened to see what it is about', async () => {
+  getReferrals.mockResolvedValue([
+    {
+      id: 1, patient_ref: 'P-1', status: 'pending', condition: 'fracture', resource_required: 'bed',
+      referring_facility_id: 1, receiving_facility_id: 2,
+      referring_facility_name: 'Facility One', receiving_facility_name: 'Facility Two',
+      created_at: '2026-11-12T08:30:00Z',
+    },
+  ]);
+  renderWithAuth({ facility_id: 1 });
+  await screen.findByText('P-1');
+  expect(screen.getByText('To Facility Two')).toBeInTheDocument();
+  expect(screen.getByText('fracture')).toBeInTheDocument();
+  expect(screen.getByText('bed')).toBeInTheDocument();
+  expect(screen.getByText('Facility One')).toBeInTheDocument();
+});
+
+test('a received referral is labelled with the facility it came from', async () => {
+  getReferrals.mockResolvedValue([
+    {
+      id: 1, patient_ref: 'P-1', status: 'pending', condition: 'fracture', resource_required: 'bed',
+      referring_facility_id: 1, receiving_facility_id: 2,
+      referring_facility_name: 'Facility One', receiving_facility_name: 'Facility Two',
+      created_at: '2026-11-12T08:30:00Z',
+    },
+  ]);
+  renderWithAuth({ facility_id: 2 });
+  await screen.findByText('P-1');
+  expect(screen.getByText('From Facility One')).toBeInTheDocument();
+});

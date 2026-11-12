@@ -35,19 +35,44 @@ export default function Referrals() {
       <ul className="rows">
         {referrals.map((r) => (
           <li key={r.id}>
-            {r.patient_ref} <ReferralStatusBadge status={r.status} />
-            {r.status === 'pending' && user.facility_id === r.receiving_facility_id && (
-              <>
-                <button onClick={() => respond(r.id, 'accept')}>Accept</button>
-                <button onClick={() => respond(r.id, 'decline')}>Decline</button>
-              </>
-            )}
-            {r.status === 'accepted' && user.facility_id === r.receiving_facility_id && (
-              <button onClick={() => respond(r.id, 'complete')}>Complete</button>
-            )}
-            {r.status === 'pending' && user.facility_id === r.referring_facility_id && (
-              <button onClick={() => respond(r.id, 'cancel')}>Cancel</button>
-            )}
+            {/* Click a referral to open it and see what it is about. */}
+            <details>
+              <summary>
+                <span>{r.patient_ref}</span>
+                <ReferralStatusBadge status={r.status} />
+                <small>
+                  {user.facility_id === r.referring_facility_id
+                    ? `To ${r.receiving_facility_name}`
+                    : `From ${r.referring_facility_name}`}
+                </small>
+              </summary>
+              <dl>
+                <dt>Condition</dt>
+                <dd>{r.condition}</dd>
+                <dt>Resource needed</dt>
+                <dd>{r.resource_required}</dd>
+                <dt>From</dt>
+                <dd>{r.referring_facility_name}</dd>
+                <dt>To</dt>
+                <dd>{r.receiving_facility_name}</dd>
+                <dt>Sent</dt>
+                <dd>{r.created_at ? new Date(r.created_at).toLocaleString() : ''}</dd>
+              </dl>
+              <div className="actions">
+                {r.status === 'pending' && user.facility_id === r.receiving_facility_id && (
+                  <>
+                    <button onClick={() => respond(r.id, 'accept')}>Accept</button>
+                    <button className="secondary" onClick={() => respond(r.id, 'decline')}>Decline</button>
+                  </>
+                )}
+                {r.status === 'accepted' && user.facility_id === r.receiving_facility_id && (
+                  <button onClick={() => respond(r.id, 'complete')}>Complete</button>
+                )}
+                {r.status === 'pending' && user.facility_id === r.referring_facility_id && (
+                  <button className="secondary" onClick={() => respond(r.id, 'cancel')}>Cancel</button>
+                )}
+              </div>
+            </details>
           </li>
         ))}
       </ul>
