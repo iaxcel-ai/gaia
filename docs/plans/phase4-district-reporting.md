@@ -19,7 +19,7 @@ This is phase 4 of 4. Kinyarwanda translation is out of scope (reported as a pro
   - Top referring facilities and top receiving facilities in the district, by referral count, highest first.
   - Recurring resource gaps: per facility and resource type, the number of `resource_status` rows with `quantity = 0` in the last 30 days. Only pairs with 2 or more are listed ("recurring"), highest first.
 - Reports never include `patient_ref` or `condition` (patient-identifying data stays out of aggregates).
-- `POST /admin/users` body: `{username, password, role, facility_id}`. Role must be `chw` or `nurse` (creating another `district_admin` is not allowed here). `facility_id` must exist. Duplicate username returns 409. The password hash is never returned.
+- `POST /admin/users` body: `{username, password, role, facility_id}`. Role must be `chw` or `nurse` (creating another `district_admin` is not allowed here). `facility_id` must exist (400 otherwise) and be in the admin's own district (403 otherwise). The username is trimmed before it is stored. Duplicate username returns 409. The password hash is never returned.
 - No ORM, raw parameterized SQL, minimal layering. Each new admin action writes one `audit_log` row.
 
 ## Review Focus
