@@ -136,6 +136,15 @@ a {
   filter: none;
 }
 
+/* Number of referrals waiting for an answer */
+.count {
+  background: #ffffff;
+  color: #246b4b;
+  font-size: 0.8rem;
+  border-radius: 999px;
+  padding: 0 0.45rem;
+}
+
 /* The page you are on */
 .topbar a.active {
   background: rgba(255, 255, 255, 0.24);
@@ -296,6 +305,15 @@ summary {
 details p {
   margin: 0.25rem 0 0;
   color: var(--muted);
+}
+
+/* Hint under a field */
+form > small {
+  color: var(--muted);
+}
+
+form dl {
+  margin-top: 0;
 }
 
 /* Staff table */
