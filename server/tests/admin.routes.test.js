@@ -160,6 +160,7 @@ test('an admin sees the staff of their own district, without password hashes', a
     role: 'nurse',
     facility_id: facilityId,
     facility_name: 'Admin Test Facility',
+    active: true,
   });
 });
 
@@ -172,4 +173,74 @@ test('the staff list is sorted by username', async () => {
 test('a nurse cannot list staff', async () => {
   const res = await listUsers(nurseToken);
   expect(res.status).toBe(403);
+});
+
+function setActive(token, id, active) {
+  return request(app).patch(`/admin/users/${id}`).set('Authorization', `Bearer ${token}`).send({ active });
+}
+
+async function userId(username) {
+  const result = await query('SELECT id FROM users WHERE username = $1', [username]);
+  return result.rows[0].id;
+}
+
+test('a deactivated account cannot log in, and can again once reactivated', async () => {
+  await createUser(adminToken, {
+    username: 'admin-test-leaver', password: 'secret123', role: 'nurse', facility_id: facilityId,
+  });
+  const id = await userId('admin-test-leaver');
+
+  const off = await setActive(adminToken, id, false);
+  expect(off.status).toBe(200);
+  expect(off.body).toEqual({ id, username: 'admin-test-leaver', active: false });
+  const blocked = await request(app).post('/auth/login').send({ username: 'admin-test-leaver', password: 'secret123' });
+  expect(blocked.status).toBe(403);
+
+  const on = await setActive(adminToken, id, true);
+  expect(on.body.active).toBe(true);
+  const allowed = await request(app).post('/auth/login').send({ username: 'admin-test-leaver', password: 'secret123' });
+  expect(allowed.status).toBe(200);
+});
+
+test('deactivating keeps the account in the staff list, marked inactive', async () => {
+  const id = await userId('admin-test-leaver');
+  await setActive(adminToken, id, false);
+  const res = await listUsers(adminToken);
+  expect(res.body.find((u) => u.id === id).active).toBe(false);
+});
+
+test('deactivating an account writes an audit row', async () => {
+  const id = await userId('admin-test-leaver');
+  await setActive(adminToken, id, true);
+  await setActive(adminToken, id, false);
+  const audit = await query('SELECT action FROM audit_log WHERE user_id = $1 ORDER BY id DESC LIMIT 1', [adminId]);
+  expect(audit.rows[0].action).toBe('user_deactivated');
+});
+
+test('an admin cannot deactivate their own account', async () => {
+  const res = await setActive(adminToken, adminId, false);
+  expect(res.status).toBe(400);
+});
+
+test('an admin cannot deactivate an account in another district', async () => {
+  const id = await userId('admin-test-elsewhere');
+  const res = await setActive(adminToken, id, false);
+  expect(res.status).toBe(404);
+});
+
+test('a nurse cannot deactivate accounts', async () => {
+  const id = await userId('admin-test-leaver');
+  const res = await setActive(nurseToken, id, false);
+  expect(res.status).toBe(403);
+});
+
+test('active must be true or false', async () => {
+  const id = await userId('admin-test-leaver');
+  const res = await setActive(adminToken, id, 'no');
+  expect(res.status).toBe(400);
+});
+
+test('a non-numeric or unknown user id returns 404', async () => {
+  expect((await setActive(adminToken, 'abc', false)).status).toBe(404);
+  expect((await setActive(adminToken, 2147483647, false)).status).toBe(404);
 });

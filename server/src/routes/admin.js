@@ -15,7 +15,7 @@ const router = express.Router();
 // Lists the staff accounts in the admin's own district, never the password hashes.
 router.get('/users', requireAuth, requireRole('district_admin'), asyncHandler(async (req, res) => {
   const result = await query(
-    `SELECT u.id, u.username, u.role, u.facility_id, f.name AS facility_name
+    `SELECT u.id, u.username, u.role, u.facility_id, f.name AS facility_name, u.active
      FROM users u
      JOIN facilities f ON f.id = u.facility_id
      WHERE f.district_id = (SELECT district_id FROM facilities WHERE id = $1)
@@ -66,6 +66,42 @@ router.post('/users', requireAuth, requireRole('district_admin'), asyncHandler(a
 
   await writeAudit(req.user.id, 'user_created');
   res.status(201).json(result.rows[0]);
+}));
+
+// Deactivates or reactivates a staff account. Accounts are never deleted,
+// so the referrals and audit history of someone who has left are kept.
+router.patch('/users/:id', requireAuth, requireRole('district_admin'), asyncHandler(async (req, res) => {
+  const { active } = req.body;
+  if (typeof active !== 'boolean') {
+    return res.status(400).json({ error: 'active must be true or false' });
+  }
+
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0 || id > MAX_PG_INTEGER) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  if (id === req.user.id) {
+    return res.status(400).json({ error: 'You cannot deactivate your own account' });
+  }
+
+  // Only staff (not other admins) at facilities in the admin's own district can be changed.
+  const result = await query(
+    `UPDATE users SET active = $1
+     WHERE id = $2
+       AND role <> 'district_admin'
+       AND facility_id IN (
+         SELECT id FROM facilities
+         WHERE district_id = (SELECT district_id FROM facilities WHERE id = $3)
+       )
+     RETURNING id, username, active`,
+    [active, id, req.user.facility_id]
+  );
+  if (result.rows.length === 0) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  await writeAudit(req.user.id, active ? 'user_reactivated' : 'user_deactivated');
+  res.status(200).json(result.rows[0]);
 }));
 
 module.exports = router;

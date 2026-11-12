@@ -22,6 +22,11 @@ router.post('/login', asyncHandler(async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
+  // Checked after the password, so only the account's owner learns it is deactivated.
+  if (!user.active) {
+    return res.status(403).json({ error: 'This account has been deactivated. Ask your district admin.' });
+  }
+
   const token = issueToken(user);
   res.status(200).json({
     token,
