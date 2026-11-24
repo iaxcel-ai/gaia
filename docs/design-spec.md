@@ -69,10 +69,12 @@ Maps directly to the SRS class diagram (Appendix B.2).
 ```sql
 districts(id, name)
 
-facilities(id, district_id FK, name, tier, phone_number)
+facilities(id, district_id FK, name, tier, sector, phone_number)
+  -- tier holds the facility type (for example 'District hospital'); sector is its sector in the district
 
-users(id, facility_id FK, username, password_hash, role, created_at)
+users(id, facility_id FK, username, password_hash, role, active, created_at)
   -- role: 'chw' | 'nurse' | 'district_admin'
+  -- active: false means deactivated; the account keeps its history but cannot log in
 
 resource_status(id, facility_id FK, type, quantity, updated_at)
   -- type: 'bed' | 'specialist' | 'supply'
@@ -82,8 +84,10 @@ resource_status(id, facility_id FK, type, quantity, updated_at)
 
 referrals(id, patient_ref, condition, resource_required,
           referring_facility_id FK, receiving_facility_id FK,
-          status, created_by FK users, created_at)
+          status, decline_reason, created_by FK users, created_at)
   -- status: 'pending' | 'accepted' | 'declined' | 'completed' | 'cancelled'
+  -- decline_reason: 'no_bed' | 'no_specialist' | 'no_supply' | 'other', set only when declined
+  -- resource_required: 'bed' | 'specialist' | 'supply'
 
 notifications(id, referral_id FK, channel, sent_at)
   -- channel: 'in_app' | 'sms'
@@ -100,19 +104,25 @@ hard-deleted from the app layer (DB 3): no DELETE route exists for them.
 
 REST, one route file per feature area, mirroring the FR groupings:
 
+The API is served under `/api` (for example `/api/auth/login`). The paths below are relative to that.
+
 | Method | Path | FR | Notes |
 |---|---|---|---|
-| POST | `/auth/login` | 3.1 | returns JWT |
+| GET | `/health` | | no login; used by the host to check the server |
+| POST | `/auth/login` | 3.1 | returns JWT; deactivated accounts get 403 |
 | POST | `/auth/logout` | 3.4 | client discards token; stateless |
-| POST | `/auth/reset-password` | 3.5 | admin-assisted channel |
+| POST | `/auth/reset-password` | 3.5 | district_admin only; accounts in the admin's own district |
+| GET | `/facilities` | 1.1 | all facilities with their latest bed, specialist and supply counts |
 | GET | `/facilities/:id/status` | 1.1–1.3 | current + stale flag |
 | PUT | `/facilities/:id/status` | 4.1 | own facility only (business rule 6.7) |
 | POST | `/referrals` | 2.1 | creates pending referral, triggers notification |
 | GET | `/referrals/:id` | 2.6 | |
-| GET | `/referrals` | 2.6 | list for logged-in user's facility |
-| PATCH | `/referrals/:id` | 2.3, 2.4, 2.7 | body `{action: accept\|decline\|complete\|cancel}` |
-| GET | `/reports/district/:id` | 5.2 | district_admin only |
-| POST | `/admin/users` | 3.3 | district_admin only |
+| GET | `/referrals` | 2.6 | list for logged-in user's facility, with facility names |
+| PATCH | `/referrals/:id` | 2.3, 2.4, 2.7 | body `{action: accept\|decline\|complete\|cancel}`; a decline also needs `reason` |
+| GET | `/reports/district/:id` | 5.2 | district_admin only, own district; counts, decline rate and reasons, gaps |
+| GET | `/admin/users` | 3.3 | district_admin only; staff of the admin's district |
+| POST | `/admin/users` | 3.3 | district_admin only; chw or nurse at a facility in the admin's district |
+| PATCH | `/admin/users/:id` | 3.3 | district_admin only; body `{active: true\|false}` to deactivate or reactivate |
 
 Role-based middleware checks `req.user.role` against a static allow-list per
 route. No permissions table; three roles is simple enough for an inline
@@ -123,12 +133,11 @@ check (FR 3.2).
 ```
 client/src/
 ├── pages/        Login, Dashboard, ReferralForm, ReferralDetail,
-│                  DistrictReports, AdminUsers
-├── components/    ResourceCard, ReferralStatusBadge, StaleFlag,
-│                  LanguageSwitcher
-├── api/           auth.js, referrals.js, facilities.js, reports.js
-├── context/       AuthContext, SocketContext
-└── i18n/          en.json, rw.json (stub)
+│                  Referrals, DistrictReports, AdminUsers
+├── components/    NavBar, Logo, ResourceCard, ReferralStatusBadge,
+│                  StaleFlag, PasswordInput, ResetPasswordForm, ThemeToggle
+├── api/           auth.js, referrals.js, facilities.js, reports.js, admin.js
+└── context/       AuthContext, SocketContext
 ```
 
 Dashboard has two views per SRS 3.1: facility view (editable, own facility)
@@ -152,12 +161,13 @@ target).
   this now).
 - Real SMS gateway (stubbed, see Scope decisions).
 - Facility-specific configuration/customization (SRS 2.5).
-- Kinyarwanda translations (structure only, not content).
+- Kinyarwanda translations. The i18n structure described under Scope decisions was not built either; the interface is English only.
 
 ## Open items for a later iteration (not blocking this build)
 
 - Legal/Ministry of Health approval for a real pilot (LEG 1, LEG 4), which
   is outside a course project's control but noted for completeness.
 - Real SMS gateway selection and credentials.
-- Production deployment target (DEP 1 describes constraints; no specific
-  host chosen yet since this is a course build, not a live pilot).
+- Production hosting for a real pilot. The course prototype is deployed on Render
+  with a Neon database (see `render.yaml` and `docs/plans/phase5-deployment-and-polish.md`);
+  a district health office would need hosting that meets DEP 1.
