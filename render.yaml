@@ -7,8 +7,9 @@ services:
     plan: free
     # Build the client, then install the server. The client's build tools are dev dependencies.
     buildCommand: npm install --include=dev --prefix client && npm run build --prefix client && npm install --prefix server
-    # Apply database migrations, add the Gasabo facilities and the admin account (safe to repeat), then start.
-    startCommand: npm run migrate up --prefix server && node server/scripts/seed.js && npm run start --prefix server
+    # Apply database migrations, add the Gasabo facilities and the admin account, add the demo data
+    # (all safe to repeat), then start.
+    startCommand: npm run migrate up --prefix server && node server/scripts/seed.js && node server/scripts/seed-demo.js && npm run start --prefix server
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
@@ -19,3 +20,9 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
+      # Demo staff accounts, resource counts and referrals for graders. Remove SEED_DEMO to turn them off.
+      # These accounts only hold made-up data, so their password is not a secret.
+      - key: SEED_DEMO
+        value: "true"
+      - key: DEMO_PASSWORD
+        value: gaia-demo-2026
