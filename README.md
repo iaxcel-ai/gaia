@@ -43,6 +43,17 @@ cd client && npm test
 
 The backend tests use their own database, `gaia_test`, so they never add test rows to the dev database. `npm test` creates it and applies the migrations automatically; Postgres only needs to be running.
 
+## Deploying to Render
+
+The repo includes a `render.yaml` blueprint. One Render web service serves both the API (under `/api`) and the built React client, so there is a single public address. The database is hosted separately, for example on Neon.
+
+1. Create a Postgres database (for example a free Neon project) and copy its connection string.
+2. On Render, choose **New > Blueprint**, connect this GitHub repo, and let it read `render.yaml`.
+3. Set the two secrets Render asks for: `DATABASE_URL` (the connection string) and `ADMIN_PASSWORD` (the password for the `admin` account, at least 7 characters). `JWT_SECRET` is generated for you.
+4. Deploy. On every start the service applies the database migrations and adds the Gasabo district, its facilities and the `admin` account if they are missing, so a fresh database needs no manual setup.
+
+Every later push to `main` redeploys automatically. A free Render service sleeps after about 15 minutes without traffic, so the first request after a quiet period can take up to a minute.
+
 ## Tech stack
 
 Node.js, Express, PostgreSQL (`node-pg-migrate` for schema migrations, no ORM), JWT auth, React + Vite, Jest/Supertest (backend), Vitest/React Testing Library (frontend).

@@ -2,7 +2,8 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const { query } = require('../src/db');
 
-const DEV_ADMIN_PASSWORD = 'admin_dev_password';
+// A deployed site sets ADMIN_PASSWORD; the well-known dev password is only for local use.
+const DEV_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin_dev_password';
 const DISTRICT = 'Gasabo';
 
 // Healthcare facilities in Gasabo district: [name, type, sector].
@@ -88,7 +89,11 @@ async function seed() {
   );
 
   console.log('Seeded district %s with %d facilities', DISTRICT, FACILITIES.length);
-  console.log('Seeded admin user: username=admin password=%s', DEV_ADMIN_PASSWORD);
+  if (process.env.ADMIN_PASSWORD) {
+    console.log('Seeded admin user: username=admin (password from ADMIN_PASSWORD)');
+  } else {
+    console.log('Seeded admin user: username=admin password=%s', DEV_ADMIN_PASSWORD);
+  }
   process.exit(0);
 }
 

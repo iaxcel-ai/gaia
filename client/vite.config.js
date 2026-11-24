@@ -5,9 +5,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      // The server serves its API under /api, so the path is passed on unchanged.
       '/api': {
         target: 'http://localhost:4000',
-        rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/socket.io': {
         target: 'http://localhost:4000',
