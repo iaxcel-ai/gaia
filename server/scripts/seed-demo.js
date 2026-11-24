@@ -9,6 +9,7 @@ const DISTRICT = 'Gasabo';
 const DEFAULT_DEMO_PASSWORD = 'gaia-demo-2026';
 
 const DEMO_ACCOUNTS = [
+  { username: 'admin.demo', role: 'district_admin', facility: 'Kacyiru District Hospital' },
   { username: 'nurse.kacyiru', role: 'nurse', facility: 'Kacyiru District Hospital' },
   { username: 'nurse.kingfaisal', role: 'nurse', facility: 'King Faisal Hospital' },
   { username: 'chw.kibagabaga', role: 'chw', facility: 'Kibagabaga Level Two Teaching Hospital' },
@@ -78,21 +79,23 @@ async function seedDemo() {
   const ids = await facilityIds();
   const password = process.env.DEMO_PASSWORD || DEFAULT_DEMO_PASSWORD;
 
-  // Already seeded once if the first demo account exists. Accounts, referrals and the
-  // one-time resource rows are only added the first time.
-  const first = await query('SELECT 1 FROM users WHERE username = $1', [DEMO_ACCOUNTS[0].username]);
-  const firstRun = first.rows.length === 0;
+  // The accounts are added on every run (existing ones are left alone), so an account added to
+  // this list later also reaches a database that was seeded earlier.
+  const hash = await bcrypt.hash(password, 10);
+  for (const account of DEMO_ACCOUNTS) {
+    await query(
+      `INSERT INTO users (username, password_hash, role, facility_id)
+       VALUES ($1, $2, $3, $4) ON CONFLICT (username) DO NOTHING`,
+      [account.username, hash, account.role, ids[account.facility]]
+    );
+  }
+
+  // The referrals and the one-time resource rows are only added the first time.
+  // The first demo referral marks that this already happened.
+  const marker = await query('SELECT 1 FROM referrals WHERE patient_ref = $1', [REFERRALS[0][0]]);
+  const firstRun = marker.rows.length === 0;
 
   if (firstRun) {
-    const hash = await bcrypt.hash(password, 10);
-    for (const account of DEMO_ACCOUNTS) {
-      await query(
-        `INSERT INTO users (username, password_hash, role, facility_id)
-         VALUES ($1, $2, $3, $4) ON CONFLICT (username) DO NOTHING`,
-        [account.username, hash, account.role, ids[account.facility]]
-      );
-    }
-
     for (const r of ONE_TIME_RESOURCES) {
       await query(
         `INSERT INTO resource_status (facility_id, type, quantity, updated_at)
@@ -101,10 +104,12 @@ async function seedDemo() {
       );
     }
 
-    const accounts = await query('SELECT id, facility_id FROM users WHERE username = ANY($1)', [
-      DEMO_ACCOUNTS.map((a) => a.username),
-    ]);
-    const creatorAt = Object.fromEntries(accounts.rows.map((u) => [u.facility_id, u.id]));
+    // Each referral is created by the staff member (not the admin) at the sending facility.
+    const staff = await query(
+      `SELECT id, facility_id FROM users WHERE username = ANY($1) AND role <> 'district_admin'`,
+      [DEMO_ACCOUNTS.map((a) => a.username)]
+    );
+    const creatorAt = Object.fromEntries(staff.rows.map((u) => [u.facility_id, u.id]));
     for (const [ref, condition, resource, from, to, status, reason, ago] of REFERRALS) {
       await query(
         `INSERT INTO referrals (patient_ref, condition, resource_required, referring_facility_id,

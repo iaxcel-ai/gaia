@@ -1,3 +1,5 @@
+const request = require('supertest');
+const app = require('../src/app');
 const { query, closePool } = require('../src/db');
 const { verifyPassword } = require('../src/services/authService');
 const { seedDemo, DEMO_FACILITY_NAMES, DEMO_ACCOUNTS } = require('../scripts/seed-demo');
@@ -120,4 +122,27 @@ test('the demo gaps and one stale facility are created once, not on every run', 
        AND rs.updated_at < now() - interval '1 day'`
   );
   expect(gaps.rows[0].n).toBe(2);
+});
+
+test('the demo admin can log in and see the staff of the district', async () => {
+  await seedDemo();
+  const login = await request(app).post('/auth/login').send({ username: 'admin.demo', password: PASSWORD });
+  expect(login.status).toBe(200);
+  expect(login.body.user.role).toBe('district_admin');
+
+  const staff = await request(app).get('/admin/users').set('Authorization', `Bearer ${login.body.token}`);
+  expect(staff.status).toBe(200);
+  const usernames = staff.body.map((u) => u.username);
+  expect(usernames).toContain('nurse.kacyiru');
+  expect(usernames).toContain('nurse.kingfaisal');
+});
+
+test('an account added to the list later still reaches a database that was seeded before', async () => {
+  await seedDemo();
+  const before = await counts();
+  await query(`DELETE FROM users WHERE username = 'admin.demo'`);
+  await seedDemo();
+  const restored = await query(`SELECT 1 FROM users WHERE username = 'admin.demo'`);
+  expect(restored.rows).toHaveLength(1);
+  expect((await counts()).referrals).toBe(before.referrals);
 });
