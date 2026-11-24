@@ -10,6 +10,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+// Used by the host to check the server is up.
+app.get('/health', (req, res) => res.status(200).json({ ok: true }));
+
 app.use('/auth', authRoutes);
 app.use('/facilities', facilitiesRoutes);
 app.use('/referrals', referralsRoutes);
